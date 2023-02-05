@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import socketio from "socket.io-client";
 import "./CallScreen.css";
 
@@ -8,13 +8,34 @@ function CallScreen() {
   const localUsername = params.username;
   const roomName = params.room;
   const localVideoRef = useRef(null);
-  const remoteVideoRef = useRef(null);
-
   const socket = socketio("http://192.168.1.6:5000/", {
     autoConnect: false,
   });
-
-  let pc; // For RTCPeerConnection Object
+  
+  const STUN_SERVERS = {
+    iceServers: [
+      {
+        urls: "stun:relay.metered.ca:80",
+      },
+      {
+        urls: "turn:relay.metered.ca:80",
+        username: "225cb4947d2e0039e9e91749",
+        credential: "jfC3ZhKAEL0v9nIa",
+      },
+      {
+        urls: "turn:relay.metered.ca:443",
+        username: "225cb4947d2e0039e9e91749",
+        credential: "jfC3ZhKAEL0v9nIa",
+      },
+      {
+        urls: "turn:relay.metered.ca:443?transport=tcp",
+        username: "225cb4947d2e0039e9e91749",
+        credential: "jfC3ZhKAEL0v9nIa",
+      },
+    ],
+  };
+  
+  let pc = {}; // For RTCPeerConnection Objects
 
   const sendData = (data) => {
     socket.emit("data", {
@@ -27,11 +48,11 @@ function CallScreen() {
   const startConnection = () => {
     navigator.mediaDevices
       .getUserMedia({
-        frameRate: { ideal: 10, max: 15 },
+        frameRate: { ideal: 8, max: 10 },
         audio: false,
         video: {
-          height: 350,
-          width: 350,
+          height: 100,
+          width: 100,
         },
       })
       .then((stream) => {
@@ -45,115 +66,126 @@ function CallScreen() {
       });
   };
 
-  const onIceCandidate = (event) => {
-    if (event.candidate) {
-      console.log("Sending ICE candidate");
-      sendData({
-        type: "candidate",
-        candidate: event.candidate,
-      });
+  const endConnection = () => {
+    socket.emit("leave", { username: localUsername, room: roomName });
+    socket.close();
+    for (let sid in pc) {
+      pc[sid].close();
+      const video = document.getElementById(sid);
+      video.remove();
     }
   };
 
-  const onTrack = (event) => {
-    console.log("Adding remote track");
-    remoteVideoRef.current.srcObject = event.streams[0];
+  const onIceCandidate = (sid) => {
+    return (event) => {
+    if (event.candidate) {
+      console.log("Sending ICE candidate");
+      sendData({description: {
+        type: "candidate",
+        candidate: event.candidate,
+      }, id: sid,});
+    }}
   };
 
-  const createPeerConnection = () => {
+  const onTrack = (sid) => {
+    return (event) => {
+    console.log("Adding remote track");
+    const room = document.getElementById("room");
+    var video = document.createElement("video");
+    video.id = sid;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.srcObject = event.streams[0];
+    room.appendChild(video);
+  };}
+
+  const createPeerConnection = (sid) => {
     try {
-      pc = new RTCPeerConnection({
-        iceServers: [
-          {
-            urls: "stun:relay.metered.ca:80",
-          },
-          {
-            urls: "turn:relay.metered.ca:80",
-            username: "225cb4947d2e0039e9e91749",
-            credential: "jfC3ZhKAEL0v9nIa",
-          },
-          {
-            urls: "turn:relay.metered.ca:443",
-            username: "225cb4947d2e0039e9e91749",
-            credential: "jfC3ZhKAEL0v9nIa",
-          },
-          {
-            urls: "turn:relay.metered.ca:443?transport=tcp",
-            username: "225cb4947d2e0039e9e91749",
-            credential: "jfC3ZhKAEL0v9nIa",
-          },
-        ],
-      });
-      pc.onicecandidate = onIceCandidate;
-      pc.ontrack = onTrack;
+      pc[sid] = new RTCPeerConnection(STUN_SERVERS);
+      pc[sid].onicecandidate = onIceCandidate(sid);
+      pc[sid].ontrack = onTrack(sid);
       const localStream = localVideoRef.current.srcObject;
       for (const track of localStream.getTracks()) {
-        pc.addTrack(track, localStream);
+        pc[sid].addTrack(track, localStream);
       }
-      console.log("PeerConnection created");
+      console.log("PeerConnection created", sid);
     } catch (error) {
       console.error("PeerConnection failed: ", error);
     }
   };
 
-  const setAndSendLocalDescription = (sessionDescription) => {
-    pc.setLocalDescription(sessionDescription);
-    console.log("Local description set");
-    sendData(sessionDescription);
-  };
+  const setAndSendLocalDescription = (sid) => {
+    return (sessionDescription) => {
+    pc[sid].setLocalDescription(sessionDescription);
+    console.log("Local description set", sid);
+    sendData({description:sessionDescription, id: sid,});
+  };}
 
-  const sendOffer = () => {
-    console.log("Sending offer");
-    pc.createOffer().then(setAndSendLocalDescription, (error) => {
+  const sendOffer = (sid) => {
+    console.log("Sending offer", sid);
+    pc[sid].createOffer().then(setAndSendLocalDescription(sid), (error) => {
       console.error("Send offer failed: ", error);
     });
   };
 
-  const sendAnswer = () => {
+  const sendAnswer = (sid) => {
     console.log("Sending answer");
-    pc.createAnswer().then(setAndSendLocalDescription, (error) => {
+    pc[sid].createAnswer().then(setAndSendLocalDescription(sid), (error) => {
       console.error("Send answer failed: ", error);
     });
   };
 
-  const signalingDataHandler = (data) => {
-    if (data.type === "offer") {
-      createPeerConnection();
-      pc.setRemoteDescription(new RTCSessionDescription(data));
-      sendAnswer();
-    } else if (data.type === "answer") {
-      pc.setRemoteDescription(new RTCSessionDescription(data));
-    } else if (data.type === "candidate") {
-      pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+  const signalingDataHandler = (data, username) => {
+    if(data.id === localUsername){
+    if (data.description.type === "offer") {
+      createPeerConnection(username);
+      pc[username].setRemoteDescription(new RTCSessionDescription(data.description));
+      sendAnswer(username);
+    } else if (data.description.type === "answer") {
+      pc[username].setRemoteDescription(new RTCSessionDescription(data.description));
+    } else if (data.description.type === "candidate") {
+      pc[username].addIceCandidate(new RTCIceCandidate(data.description.candidate));
     } else {
       console.log("Unknown Data");
-    }
+    }}
   };
 
-  socket.on("ready", () => {
+  socket.on("ready", (username) => {
     console.log("Ready to Connect!");
-    createPeerConnection();
-    sendOffer();
+    createPeerConnection(username);
+    sendOffer(username);
   });
 
-  socket.on("data", (data) => {
-    console.log("Data received: ", data);
-    signalingDataHandler(data);
+  socket.on("leave", (username) => {
+    console.log("Disconnect!");
+    const video = document.getElementById(username);
+    video.remove();
+    pc[username].close();
   });
+
+  socket.on("data", (data, username) => {
+    console.log("Data received: ", data);
+    signalingDataHandler(data, username);
+  });
+
+  startConnection();
 
   useEffect(() => {
-    startConnection();
+    window.addEventListener('beforeunload', handleTabClosing)
     return function cleanup() {
-      pc?.close();
+      window.removeEventListener('beforeunload', handleTabClosing)
     };
-  }, []);
+  });
 
+  const handleTabClosing = (event) => {
+    event.preventDefault();
+    endConnection()
+  }
   return (
-    <div>
+    <div id="room">
       <label>{"Username: " + localUsername}</label>
       <label>{"Room Id: " + roomName}</label>
       <video autoPlay muted playsInline ref={localVideoRef} />
-      <video autoPlay muted playsInline ref={remoteVideoRef} />
     </div>
   );
 }
