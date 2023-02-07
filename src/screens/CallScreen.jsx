@@ -51,8 +51,8 @@ function CallScreen() {
         frameRate: { ideal: 8, max: 10 },
         audio: false,
         video: {
-          height: 100,
-          width: 100,
+          height: 150,
+          width: 150,
         },
       })
       .then((stream) => {
@@ -136,18 +136,19 @@ function CallScreen() {
   };
 
   const signalingDataHandler = (data, username) => {
-    if(data.id === localUsername){
-    if (data.description.type === "offer") {
-      createPeerConnection(username);
-      pc[username].setRemoteDescription(new RTCSessionDescription(data.description));
-      sendAnswer(username);
-    } else if (data.description.type === "answer") {
-      pc[username].setRemoteDescription(new RTCSessionDescription(data.description));
-    } else if (data.description.type === "candidate") {
-      pc[username].addIceCandidate(new RTCIceCandidate(data.description.candidate));
-    } else {
-      console.log("Unknown Data");
-    }}
+    if(data.id === localUsername) {
+      if (data.description.type === "offer") {
+        createPeerConnection(username);
+        pc[username].setRemoteDescription(new RTCSessionDescription(data.description));
+        sendAnswer(username);
+      } else if (data.description.type === "answer") {
+        pc[username].setRemoteDescription(new RTCSessionDescription(data.description));
+      } else if (data.description.type === "candidate") {
+        pc[username].addIceCandidate(new RTCIceCandidate(data.description.candidate));
+      } else {
+        console.log("Unknown Data");
+      }
+    }
   };
 
   socket.on("ready", (username) => {
@@ -168,19 +169,20 @@ function CallScreen() {
     signalingDataHandler(data, username);
   });
 
-  startConnection();
-
-  useEffect(() => {
-    window.addEventListener('beforeunload', handleTabClosing)
-    return function cleanup() {
-      window.removeEventListener('beforeunload', handleTabClosing)
-    };
-  });
-
   const handleTabClosing = (event) => {
     event.preventDefault();
     endConnection()
   }
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', handleTabClosing);
+    startConnection();
+    return function cleanup() {
+      endConnection();
+      window.removeEventListener('beforeunload', handleTabClosing);
+    };
+  }, []);
+
   return (
     <div id="room">
       <label>{"Username: " + localUsername}</label>
