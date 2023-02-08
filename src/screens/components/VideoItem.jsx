@@ -9,7 +9,7 @@ function VideoItem(props) {
   }, []);
 
   return (
-    <video autoPlay muted playsInline ref={remoteVideoRef} />
+    <video autoPlay playsInline ref={remoteVideoRef} />
   );
 }
 

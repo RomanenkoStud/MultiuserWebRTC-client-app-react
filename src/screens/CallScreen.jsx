@@ -39,7 +39,13 @@ function CallScreen() {
   const socket = useRef(null);
   const pc = useRef({}); // For RTCPeerConnection Objects
   const [videos, setVideos] = useState([]);
-
+  const videoSize = {
+    height: 300,
+    width: 300,
+  };
+  const [micState, setMicState] = useState(true);
+  const [camState, setCamState] = useState(true);
+  
   const sendData = (data) => {
     socket.current.emit("data", {
       username: localUsername,
@@ -51,12 +57,11 @@ function CallScreen() {
   const startConnection = () => {
     navigator.mediaDevices
       .getUserMedia({
-        frameRate: { ideal: 8, max: 10 },
-        audio: false,
-        video: {
-          height: 150,
-          width: 150,
-        },
+        frameRate: { 
+          ideal: 8, 
+          max: 10 },
+        audio: true,
+        video: videoSize,
       })
       .then((stream) => {
         console.log("Local Stream found");
@@ -89,17 +94,17 @@ function CallScreen() {
     }}
   };
 
-  const onTrack = (sid) => {
+  const onAddStream = (sid) => {
     return (event) => {
-    console.log("Adding remote track");
-    setVideos(videos => [...videos, {id: sid, stream: event.streams[0]}]);
+    console.log("Adding remote stream");
+    setVideos(videos => [...videos, {id: sid, stream: event.stream}]);
   };}
 
   const createPeerConnection = (sid) => {
     try {
       pc.current[sid] = new RTCPeerConnection(STUN_SERVERS);
       pc.current[sid].onicecandidate = onIceCandidate(sid);
-      pc.current[sid].ontrack = onTrack(sid);
+      pc.current[sid].onaddstream = onAddStream(sid);
       const localStream = localVideoRef.current.srcObject;
       for (const track of localStream.getTracks()) {
         pc.current[sid].addTrack(track, localStream);
@@ -175,7 +180,7 @@ function CallScreen() {
 
   useEffect(() => {
     socket.current.on("leave", (username) => {
-      console.log("Disconnect!", videos);
+      console.log("Disconnect!");
       pc.current[username].close();
       let newVideos = videos.filter(function(item) { return item.id !== username });
       setVideos(newVideos);
@@ -186,12 +191,54 @@ function CallScreen() {
     return videos.map(item => <VideoItem key={item.id} stream={item.stream}/>);
   };
 
+  const muteAudio = (state) => {
+    if (pc.current.length !== 0) {
+      for (const id in pc.current) {
+        let sender = pc.current[id].getSenders().find((s) => s.track.kind === "audio");
+        sender.track.enabled = !state;
+      }
+    }
+  }
+  
+  const muteVideo = (state) => {
+    if (pc.current.length !== 0) {
+      for (const id in pc.current) {
+        let sender = pc.current[id].getSenders().find((s) => s.track.kind === "video");
+        sender.track.enabled = !state;
+      }
+    }
+  }
+
+  const handleAudio = () => {
+    if(micState) {
+      setMicState(false);
+      muteAudio(true);
+    } else {
+      setMicState(true);
+      muteAudio(false);
+    }
+  } 
+
+  const handleVideo = () => {
+    if(camState) {
+      setCamState(false);
+      muteVideo(true);
+    } else {
+      setCamState(true);
+      muteVideo(false);
+    }
+  } 
+
   return (
-    <div id="room">
+    <div>
       <label>{"Username: " + localUsername}</label>
       <label>{"Room Id: " + roomName}</label>
-      <video autoPlay muted playsInline ref={localVideoRef} />
-      {renderVideos(videos)}
+      <div>
+        <video autoPlay muted playsInline ref={localVideoRef} />
+        {renderVideos(videos)}
+      </div>
+      <button onClick={handleVideo} style={{"color": camState?"green":"red"}}>Video</button>
+      <button onClick={handleAudio} style={{"color": micState?"green":"red"}}>Audio</button>
     </div>
   );
 }
