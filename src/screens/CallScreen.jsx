@@ -147,16 +147,6 @@ function CallScreen() {
     }
   };
 
-  socket.current.on("ready", (username) => {
-    console.log("Ready to Connect!");
-    createPeerConnection(username);
-    sendOffer(username);
-  });
-
-  socket.current.on("data", (data, username) => {
-    signalingDataHandler(data, username);
-  });
-
   const handleTabClosing = (event) => {
     event.preventDefault();
     endConnection()
@@ -165,6 +155,17 @@ function CallScreen() {
   useEffect(() => {
     window.addEventListener('beforeunload', handleTabClosing);
     socket.current = socketio(host, connectionOptions);
+    
+    socket.current.on("ready", (username) => {
+      console.log("Ready to Connect!");
+      createPeerConnection(username);
+      sendOffer(username);
+    });
+  
+    socket.current.on("data", (data, username) => {
+      signalingDataHandler(data, username);
+    });
+  
     startConnection();
     return function cleanup() {
       endConnection();
