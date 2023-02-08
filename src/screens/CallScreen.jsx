@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useRef, useEffect, useState } from "react";
 import socketio from "socket.io-client";
+import VideoItem from "./components/VideoItem";
 import "./CallScreen.css";
 
 const host = "http://192.168.1.6:5000/";
@@ -37,7 +38,8 @@ function CallScreen() {
   const localVideoRef = useRef(null);
   const socket = socketio(host, connectionOptions);
   const pc = useRef({}); // For RTCPeerConnection Objects
-
+  const [videos, setVideos] = useState([]);
+  
   const sendData = (data) => {
     socket.emit("data", {
       username: localUsername,
@@ -72,9 +74,8 @@ function CallScreen() {
     socket.close();
     for (let sid in pc.current) {
       pc.current[sid].close();
-      const video = document.getElementById(sid);
-      video.remove();
     }
+    setVideos([]);
   };
 
   const onIceCandidate = (sid) => {
@@ -91,14 +92,7 @@ function CallScreen() {
   const onTrack = (sid) => {
     return (event) => {
     console.log("Adding remote track");
-    
-    const room = document.getElementById("room");
-    var video = document.createElement("video");
-    video.id = sid;
-    video.autoplay = true;
-    video.playsInline = true;
-    video.srcObject = event.streams[0];
-    room.appendChild(video);
+    setVideos(videos => [...videos, {id: sid, stream: event.streams[0]}]);
   };}
 
   const createPeerConnection = (sid) => {
@@ -159,15 +153,7 @@ function CallScreen() {
     sendOffer(username);
   });
 
-  socket.on("leave", (username) => {
-    console.log("Disconnect!");
-    const video = document.getElementById(username);
-    video.remove();
-    pc[username].close();
-  });
-
   socket.on("data", (data, username) => {
-    console.log("Data received: ", data);
     signalingDataHandler(data, username);
   });
 
@@ -185,11 +171,25 @@ function CallScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    socket.on("leave", (username) => {
+      console.log("Disconnect!");
+      pc.current[username].close();
+      let newVideos = videos.filter(function(item) { return item.id !== username });
+      setVideos(newVideos);
+    });
+  }, [videos]);
+
+  const renderVideos = (videos) => {
+    return videos.map(item => <VideoItem key={item.id} stream={item.stream}/>);
+  };
+
   return (
     <div id="room">
       <label>{"Username: " + localUsername}</label>
       <label>{"Room Id: " + roomName}</label>
       <video autoPlay muted playsInline ref={localVideoRef} />
+      {renderVideos(videos)}
     </div>
   );
 }
