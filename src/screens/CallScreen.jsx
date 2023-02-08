@@ -36,12 +36,12 @@ function CallScreen() {
   const localUsername = params.username;
   const roomName = params.room;
   const localVideoRef = useRef(null);
-  const socket = socketio(host, connectionOptions);
+  const socket = useRef(null);
   const pc = useRef({}); // For RTCPeerConnection Objects
   const [videos, setVideos] = useState([]);
-  
+
   const sendData = (data) => {
-    socket.emit("data", {
+    socket.current.emit("data", {
       username: localUsername,
       room: roomName,
       data: data,
@@ -61,8 +61,8 @@ function CallScreen() {
       .then((stream) => {
         console.log("Local Stream found");
         localVideoRef.current.srcObject = stream;
-        socket.connect();
-        socket.emit("join", { username: localUsername, room: roomName });
+        socket.current.connect();
+        socket.current.emit("join", { username: localUsername, room: roomName });
       })
       .catch((error) => {
         console.error("Stream not found: ", error);
@@ -70,8 +70,8 @@ function CallScreen() {
   };
 
   const endConnection = () => {
-    socket.emit("leave", { username: localUsername, room: roomName });
-    socket.close();
+    socket.current.emit("leave", { username: localUsername, room: roomName });
+    socket.current.close();
     for (let sid in pc.current) {
       pc.current[sid].close();
     }
@@ -147,13 +147,13 @@ function CallScreen() {
     }
   };
 
-  socket.on("ready", (username) => {
+  socket.current.on("ready", (username) => {
     console.log("Ready to Connect!");
     createPeerConnection(username);
     sendOffer(username);
   });
 
-  socket.on("data", (data, username) => {
+  socket.current.on("data", (data, username) => {
     signalingDataHandler(data, username);
   });
 
@@ -164,6 +164,7 @@ function CallScreen() {
 
   useEffect(() => {
     window.addEventListener('beforeunload', handleTabClosing);
+    socket.current = socketio(host, connectionOptions);
     startConnection();
     return function cleanup() {
       endConnection();
@@ -172,8 +173,8 @@ function CallScreen() {
   }, []);
 
   useEffect(() => {
-    socket.on("leave", (username) => {
-      console.log("Disconnect!");
+    socket.current.on("leave", (username) => {
+      console.log("Disconnect!", videos);
       pc.current[username].close();
       let newVideos = videos.filter(function(item) { return item.id !== username });
       setVideos(newVideos);
