@@ -3,39 +3,40 @@ import { useRef, useEffect, useState } from "react";
 import socketio from "socket.io-client";
 import "./CallScreen.css";
 
+const host = "http://192.168.1.6:5000/";
+const connectionOptions = {
+  autoConnect: false,
+};
+const STUN_SERVERS = {
+  iceServers: [
+    {
+      urls: "stun:relay.metered.ca:80",
+    },
+    {
+      urls: "turn:relay.metered.ca:80",
+      username: "225cb4947d2e0039e9e91749",
+      credential: "jfC3ZhKAEL0v9nIa",
+    },
+    {
+      urls: "turn:relay.metered.ca:443",
+      username: "225cb4947d2e0039e9e91749",
+      credential: "jfC3ZhKAEL0v9nIa",
+    },
+    {
+      urls: "turn:relay.metered.ca:443?transport=tcp",
+      username: "225cb4947d2e0039e9e91749",
+      credential: "jfC3ZhKAEL0v9nIa",
+    },
+  ],
+};
+
 function CallScreen() {
   const params = useParams();
   const localUsername = params.username;
   const roomName = params.room;
   const localVideoRef = useRef(null);
-  const socket = socketio("http://192.168.1.6:5000/", {
-    autoConnect: false,
-  });
-  
-  const STUN_SERVERS = {
-    iceServers: [
-      {
-        urls: "stun:relay.metered.ca:80",
-      },
-      {
-        urls: "turn:relay.metered.ca:80",
-        username: "225cb4947d2e0039e9e91749",
-        credential: "jfC3ZhKAEL0v9nIa",
-      },
-      {
-        urls: "turn:relay.metered.ca:443",
-        username: "225cb4947d2e0039e9e91749",
-        credential: "jfC3ZhKAEL0v9nIa",
-      },
-      {
-        urls: "turn:relay.metered.ca:443?transport=tcp",
-        username: "225cb4947d2e0039e9e91749",
-        credential: "jfC3ZhKAEL0v9nIa",
-      },
-    ],
-  };
-  
-  let pc = {}; // For RTCPeerConnection Objects
+  const socket = socketio(host, connectionOptions);
+  const pc = useRef({}); // For RTCPeerConnection Objects
 
   const sendData = (data) => {
     socket.emit("data", {
@@ -69,8 +70,8 @@ function CallScreen() {
   const endConnection = () => {
     socket.emit("leave", { username: localUsername, room: roomName });
     socket.close();
-    for (let sid in pc) {
-      pc[sid].close();
+    for (let sid in pc.current) {
+      pc.current[sid].close();
       const video = document.getElementById(sid);
       video.remove();
     }
@@ -90,6 +91,7 @@ function CallScreen() {
   const onTrack = (sid) => {
     return (event) => {
     console.log("Adding remote track");
+    
     const room = document.getElementById("room");
     var video = document.createElement("video");
     video.id = sid;
@@ -101,12 +103,12 @@ function CallScreen() {
 
   const createPeerConnection = (sid) => {
     try {
-      pc[sid] = new RTCPeerConnection(STUN_SERVERS);
-      pc[sid].onicecandidate = onIceCandidate(sid);
-      pc[sid].ontrack = onTrack(sid);
+      pc.current[sid] = new RTCPeerConnection(STUN_SERVERS);
+      pc.current[sid].onicecandidate = onIceCandidate(sid);
+      pc.current[sid].ontrack = onTrack(sid);
       const localStream = localVideoRef.current.srcObject;
       for (const track of localStream.getTracks()) {
-        pc[sid].addTrack(track, localStream);
+        pc.current[sid].addTrack(track, localStream);
       }
       console.log("PeerConnection created", sid);
     } catch (error) {
@@ -116,21 +118,21 @@ function CallScreen() {
 
   const setAndSendLocalDescription = (sid) => {
     return (sessionDescription) => {
-    pc[sid].setLocalDescription(sessionDescription);
+    pc.current[sid].setLocalDescription(sessionDescription);
     console.log("Local description set", sid);
     sendData({description:sessionDescription, id: sid,});
   };}
 
   const sendOffer = (sid) => {
     console.log("Sending offer", sid);
-    pc[sid].createOffer().then(setAndSendLocalDescription(sid), (error) => {
+    pc.current[sid].createOffer().then(setAndSendLocalDescription(sid), (error) => {
       console.error("Send offer failed: ", error);
     });
   };
 
   const sendAnswer = (sid) => {
     console.log("Sending answer");
-    pc[sid].createAnswer().then(setAndSendLocalDescription(sid), (error) => {
+    pc.current[sid].createAnswer().then(setAndSendLocalDescription(sid), (error) => {
       console.error("Send answer failed: ", error);
     });
   };
@@ -139,12 +141,12 @@ function CallScreen() {
     if(data.id === localUsername) {
       if (data.description.type === "offer") {
         createPeerConnection(username);
-        pc[username].setRemoteDescription(new RTCSessionDescription(data.description));
+        pc.current[username].setRemoteDescription(new RTCSessionDescription(data.description));
         sendAnswer(username);
       } else if (data.description.type === "answer") {
-        pc[username].setRemoteDescription(new RTCSessionDescription(data.description));
+        pc.current[username].setRemoteDescription(new RTCSessionDescription(data.description));
       } else if (data.description.type === "candidate") {
-        pc[username].addIceCandidate(new RTCIceCandidate(data.description.candidate));
+        pc.current[username].addIceCandidate(new RTCIceCandidate(data.description.candidate));
       } else {
         console.log("Unknown Data");
       }
