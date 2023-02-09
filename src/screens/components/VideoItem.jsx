@@ -9,7 +9,7 @@ function VideoItem(props) {
   }, []);
 
   return (
-    <video autoPlay playsInline ref={remoteVideoRef} />
+    <video className={props.type} autoPlay playsInline ref={remoteVideoRef} />
   );
 }
 

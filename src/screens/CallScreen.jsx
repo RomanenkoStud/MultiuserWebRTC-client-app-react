@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState } from "react";
 import socketio from "socket.io-client";
 import VideoItem from "./components/VideoItem";
@@ -30,22 +30,43 @@ const STUN_SERVERS = {
     },
   ],
 };
+const userVideoSize = { height: 300, width: 300, };
+const deskVideoSize = { height: 720, width: 1280, };
+
+const muteAudio = (connections, audioState) => {
+  if (connections.length !== 0) {
+    for (const id in connections) {
+      let sender = connections[id].getSenders().find((s) => s.track.kind === "audio");
+      sender.track.enabled = !audioState;
+    }
+  }
+}
+
+const muteVideo = (connections, videoState) => {
+  if (connections.length !== 0) {
+    for (const id in connections) {
+      let sender = connections[id].getSenders().find((s) => s.track.kind === "video");
+      sender.track.enabled = !videoState;
+    }
+  }
+}
 
 function CallScreen() {
   const params = useParams();
   const localUsername = params.username;
   const roomName = params.room;
   const localVideoRef = useRef(null);
+  const deskVideoRef = useRef(null);
   const socket = useRef(null);
   const pc = useRef({}); // For RTCPeerConnection Objects
   const [videos, setVideos] = useState([]);
-  const videoSize = {
-    height: 300,
-    width: 300,
-  };
+  const [deskStreams, setDeskStreams] = useState([]);
+  const [newStream, setNewStream] = useState(null);
+  const [deleteStream, setDeleteStream] = useState(null);
   const [micState, setMicState] = useState(true);
   const [camState, setCamState] = useState(true);
-  
+  const [deskState, setDeskState] = useState(false);
+
   const sendData = (data) => {
     socket.current.emit("data", {
       username: localUsername,
@@ -61,7 +82,7 @@ function CallScreen() {
           ideal: 8, 
           max: 10 },
         audio: true,
-        video: videoSize,
+        video: userVideoSize,
       })
       .then((stream) => {
         console.log("Local Stream found");
@@ -97,7 +118,13 @@ function CallScreen() {
   const onAddStream = (sid) => {
     return (event) => {
     console.log("Adding remote stream");
-    setVideos(videos => [...videos, {id: sid, stream: event.stream}]);
+    setNewStream({id: sid, stream: event.stream});
+  };}
+
+  const onRemoveStream = (sid) => {
+    return (event) => {
+    console.log("Delete remote stream");
+    setDeleteStream(sid);
   };}
 
   const createPeerConnection = (sid) => {
@@ -105,10 +132,9 @@ function CallScreen() {
       pc.current[sid] = new RTCPeerConnection(STUN_SERVERS);
       pc.current[sid].onicecandidate = onIceCandidate(sid);
       pc.current[sid].onaddstream = onAddStream(sid);
+      pc.current[sid].onremovestream = onRemoveStream(sid);
       const localStream = localVideoRef.current.srcObject;
-      for (const track of localStream.getTracks()) {
-        pc.current[sid].addTrack(track, localStream);
-      }
+      pc.current[sid].addStream(localStream);
       console.log("PeerConnection created", sid);
     } catch (error) {
       console.error("PeerConnection failed: ", error);
@@ -139,7 +165,9 @@ function CallScreen() {
   const signalingDataHandler = (data, username) => {
     if(data.id === localUsername) {
       if (data.description.type === "offer") {
-        createPeerConnection(username);
+        if (pc.current[username] === undefined) {
+          createPeerConnection(username);
+        }
         pc.current[username].setRemoteDescription(new RTCSessionDescription(data.description));
         sendAnswer(username);
       } else if (data.description.type === "answer") {
@@ -187,58 +215,120 @@ function CallScreen() {
     });
   }, [videos]);
 
-  const renderVideos = (videos) => {
-    return videos.map(item => <VideoItem key={item.id} stream={item.stream}/>);
-  };
+  useEffect(() => {
+    if(newStream !== null) {
+      const exist = videos.find(item => item.id === newStream.id);
+      if(exist === undefined){
+        setVideos(videos => [...videos, newStream])
+      } else {
+        setDeskStreams(deskStreams => [...deskStreams, newStream])
+      }
+    }
+  }, [newStream]);
 
-  const muteAudio = (state) => {
-    if (pc.current.length !== 0) {
-      for (const id in pc.current) {
-        let sender = pc.current[id].getSenders().find((s) => s.track.kind === "audio");
-        sender.track.enabled = !state;
-      }
+  useEffect(() => {
+    if(deleteStream !== null) {
+      let newVideos = deskStreams.filter(function(item) { return item.id !== deleteStream });
+      setDeskStreams(newVideos);
     }
-  }
+  }, [deleteStream]);
+
+  useEffect(() => {
+    if(deskState) {
+      streamDesk(deskVideoRef.current);
+    } 
+  }, [deskState]);
+
+  useEffect(() => {
+    muteAudio(pc.current, !micState);
+  }, [micState]);
+
+  useEffect(() => {
+    muteVideo(pc.current, !camState);
+  }, [camState]);
   
-  const muteVideo = (state) => {
-    if (pc.current.length !== 0) {
-      for (const id in pc.current) {
-        let sender = pc.current[id].getSenders().find((s) => s.track.kind === "video");
-        sender.track.enabled = !state;
-      }
-    }
-  }
+  const renderVideos = (videos, type) => {
+    return videos.map(item => <VideoItem key={item.id} stream={item.stream} type={type}/>);
+  };
 
   const handleAudio = () => {
     if(micState) {
       setMicState(false);
-      muteAudio(true);
     } else {
       setMicState(true);
-      muteAudio(false);
     }
   } 
 
   const handleVideo = () => {
     if(camState) {
       setCamState(false);
-      muteVideo(true);
     } else {
       setCamState(true);
-      muteVideo(false);
     }
   } 
+
+  const streamDesk = (localStream) => {
+    navigator.mediaDevices
+      .getDisplayMedia({
+        frameRate: { 
+          ideal: 8, 
+          max: 10 },
+        audio: true,
+        video: deskVideoSize,
+      })
+      .then((stream) => {
+        console.log("Desk Stream found");
+        localStream.srcObject = stream;
+        for (let sid in pc.current) {
+          pc.current[sid].addStream(stream);
+          sendOffer(sid);
+        }
+      })
+      .catch((error) => {
+        console.error("Stream not found: ", error);
+      });
+  }
+
+  const endStream = (stream) => {
+    stream.srcObject.getTracks().forEach(function(track) {
+      track.stop();
+    });
+  }
+
+  const handleStream = () => {
+    if(deskState) {
+      for (let sid in pc.current) {
+        pc.current[sid].removeStream(deskVideoRef.current.srcObject);
+        sendOffer(sid);
+      }
+      endStream(deskVideoRef.current);
+      setDeskState(false);
+    } else {
+      setDeskState(true);
+    }
+  } 
+
+  const navigate = useNavigate();
+  const handleEndCall = () => {
+    endStream(localVideoRef.current);
+    endConnection();
+    navigate("/");
+  }
 
   return (
     <div>
       <label>{"Username: " + localUsername}</label>
       <label>{"Room Id: " + roomName}</label>
       <div>
-        <video autoPlay muted playsInline ref={localVideoRef} />
-        {renderVideos(videos)}
+        <video className="userVideo" autoPlay muted playsInline ref={localVideoRef} />
+        {renderVideos(videos, "userVideo")}
+        {renderVideos(deskStreams, "deskVideo")}
+        {deskState?<video autoPlay muted playsInline ref={deskVideoRef} />:null}
       </div>
       <button onClick={handleVideo} style={{"color": camState?"green":"red"}}>Video</button>
       <button onClick={handleAudio} style={{"color": micState?"green":"red"}}>Audio</button>
+      <button onClick={handleStream} style={{"color": deskState?"green":"red"}}>Stream</button>
+      <button onClick={handleEndCall} style={{"color": "red"}}>End</button>
     </div>
   );
 }
