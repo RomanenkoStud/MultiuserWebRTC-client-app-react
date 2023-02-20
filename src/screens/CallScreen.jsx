@@ -4,7 +4,7 @@ import socketio from "socket.io-client";
 import VideoItem from "./components/VideoItem";
 import "./CallScreen.css";
 
-const host = "http://192.168.1.6:5000/";
+const host = "http://localhost:5000/";
 const connectionOptions = {
   autoConnect: false,
 };
@@ -49,6 +49,12 @@ const muteVideo = (connections, videoState) => {
       sender.track.enabled = !videoState;
     }
   }
+}
+
+const endStream = (stream) => {
+  stream.srcObject.getTracks().forEach(function(track) {
+    track.stop();
+  });
 }
 
 const mediaReducer = (state, action) => {
@@ -280,12 +286,6 @@ function CallScreen() {
       });
   }
 
-  const endStream = (stream) => {
-    stream.srcObject.getTracks().forEach(function(track) {
-      track.stop();
-    });
-  }
-
   const handleStream = () => {
     if(deskState) {
       for (let sid in pc.current) {
@@ -310,10 +310,14 @@ function CallScreen() {
       <label>{"Username: " + localUsername}</label>
       <label>{"Room Id: " + roomName}</label>
       <div>
-        <video className="userVideo" autoPlay muted playsInline ref={localVideoRef} />
-        {renderVideos(streamState.users, "userVideo")}
-        {renderVideos(streamState.desk, "deskVideo")}
-        {deskState?<video autoPlay muted playsInline ref={deskVideoRef} />:null}
+        <div className="usersContainer">
+          <video className="userVideo" autoPlay muted playsInline ref={localVideoRef} />
+          {renderVideos(streamState.users, "userVideo")}
+        </div>
+        <div>
+          {deskState?<video className="deskVideo" autoPlay muted playsInline ref={deskVideoRef} />:null}
+          {renderVideos(streamState.desk, "deskVideo")}
+        </div>
       </div>
       <button onClick={() => mediaDispatch({type: 'video'})} 
         style={{"color": mediaState.cam?"green":"red"}}>Video</button>
