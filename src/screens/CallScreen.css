@@ -11,14 +11,24 @@ body {
 }
 
 video {
-    max-width: 75%;
+    max-width: 200%;
     margin: 20px;
     box-sizing: border-box;
     padding: 0;
 }
 
-.userVideo {
+.videosContainer {
+    height: 75vh;
+}
+
+.usersVideos {
+    display: flex;
+}
+
+.usersVideos>* {
     border-radius: 50%;
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 label {

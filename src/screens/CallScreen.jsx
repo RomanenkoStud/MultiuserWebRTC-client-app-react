@@ -260,8 +260,8 @@ function CallScreen() {
     muteAudio(pc.current, !mediaState.mic);
   }, [mediaState]);
   
-  const renderVideos = (videos, type) => {
-    return videos.map(item => <VideoItem key={item.id} stream={item.stream} type={type}/>);
+  const renderVideos = (videos) => {
+    return videos.map(item => <VideoItem key={item.id} stream={item.stream}/>);
   };
 
   const streamDesk = (localStream) => {
@@ -311,12 +311,12 @@ function CallScreen() {
       <label>{"Room Id: " + roomName}</label>
       <div>
         <div className="usersContainer">
-          <video className="userVideo" autoPlay muted playsInline ref={localVideoRef} />
-          {renderVideos(streamState.users, "userVideo")}
+          <video autoPlay muted playsInline ref={localVideoRef} />
+          {renderVideos(streamState.users)}
         </div>
         <div>
           {deskState?<video className="deskVideo" autoPlay muted playsInline ref={deskVideoRef} />:null}
-          {renderVideos(streamState.desk, "deskVideo")}
+          {renderVideos(streamState.desk)}
         </div>
       </div>
       <button onClick={() => mediaDispatch({type: 'video'})} 
