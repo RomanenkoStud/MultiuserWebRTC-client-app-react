@@ -229,6 +229,11 @@ function CallScreen() {
   useEffect(() => {
     window.addEventListener('beforeunload', handleTabClosing);
     socket.current = socketio(host, connectionOptions);
+    socket.current.on("room_full", () => {
+      console.log("Room is full!");
+      endStream(localVideoRef.current);
+      endConnection();
+    });
     socket.current.on("leave", (username) => {
       console.log("Disconnect!");
       pc.current[username].close();
