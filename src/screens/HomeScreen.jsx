@@ -1,33 +1,78 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import "./HomeScreen.css";
+import Button from '@mui/material/Button';
+import CssBaseline from '@mui/material/CssBaseline';
+import TextField from '@mui/material/TextField';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-function HomeScreen() {
+const theme = createTheme();
+
+export default function HomeScreen() {
     const [room, setRoom] = useState("");
     const [username, setUsername] = useState("");
 
+    const handleSubmit = (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    console.log({
+        user: data.get('user'),
+        room: data.get('room'),
+    });
+    };
+
     return (
-    <form method="post" action="">
-        <label htmlFor="username">Username</label>
-
-        <input
-        value={username}
-        title="username"
-        onInput={(e) => setUsername(e.target.value)}
-        />
-
-        <label htmlFor="room">Room</label>
-
-        <input
-        value={room}
-        title="room"
-        onInput={(e) => setRoom(e.target.value)}
-        />
-        <Link to={`/call/${username}/${room}`}>
-        <input type="submit" name="submit" value="Join Room" />
-        </Link>
-    </form>
+    <ThemeProvider theme={theme}>
+        <Container component="main" maxWidth="xs">
+            <CssBaseline />
+            <Box
+                sx={{
+                marginTop: 8,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                }}
+            >
+                <Typography component="h1" variant="h5">
+                Connect to room
+                </Typography>
+                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        id="user"
+                        type="text"
+                        label="User"
+                        name="user"
+                        autoFocus
+                        onInput={(e) => setUsername(e.target.value)}
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        name="room"
+                        label="Room"
+                        type="text"
+                        id="room"
+                        onInput={(e) => setRoom(e.target.value)}
+                    />
+                    <Link to={`/call/${username}/${room}`} style={{ textDecoration: 'none' }}>
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            sx={{ mt: 3, mb: 2 }}
+                        >
+                            Connect
+                        </Button>
+                    </Link>
+                </Box>
+            </Box>
+        </Container>
+    </ThemeProvider>
     );
 }
-
-export default HomeScreen;

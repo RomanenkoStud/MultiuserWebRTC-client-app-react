@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState, useReducer } from "react";
 import socketio from "socket.io-client";
 import VideoItem from "./components/VideoItem";
-import "./CallScreen.css";
+
 
 const host = "http://localhost:5000/";
 const connectionOptions = {
