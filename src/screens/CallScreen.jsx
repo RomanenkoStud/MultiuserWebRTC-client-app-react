@@ -2,7 +2,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState, useReducer } from "react";
 import socketio from "socket.io-client";
 import VideoItem from "./components/VideoItem";
-
+import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import CssBaseline from '@mui/material/CssBaseline';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
 
 const host = "http://localhost:5000/";
 const connectionOptions = {
@@ -51,8 +57,45 @@ const muteVideo = (connections, videoState) => {
   }
 }
 
+const streamLocal = (setStream) => {
+  navigator.mediaDevices
+    .getUserMedia({
+      frameRate: { 
+        ideal: 8, 
+        max: 10 },
+      audio: true,
+      video: userVideoSize,
+    })
+    .then((stream) => {
+      console.log("Local Stream found");
+      setStream(stream);
+    })
+    .catch((error) => {
+      console.error("Stream not found: ", error);
+    });
+};
+
+const streamDesk = (setStream, addStreamToPeers) => {
+  navigator.mediaDevices
+    .getDisplayMedia({
+      frameRate: { 
+        ideal: 8, 
+        max: 10 },
+      audio: true,
+      video: deskVideoSize,
+    })
+    .then((stream) => {
+      console.log("Desk Stream found");
+      setStream(stream);
+      addStreamToPeers(stream);
+    })
+    .catch((error) => {
+      console.error("Stream not found: ", error);
+    });
+}
+
 const endStream = (stream) => {
-  stream.srcObject.getTracks().forEach(function(track) {
+  stream.getTracks().forEach(function(track) {
     track.stop();
   });
 }
@@ -95,13 +138,12 @@ function CallScreen() {
   const params = useParams();
   const localUsername = params.username;
   const roomName = params.room;
-  const localVideoRef = useRef(null);
-  const deskVideoRef = useRef(null);
+  const [localVideo, setLocalVideo] = useState(false);
+  const [deskVideo, setDeskVideo] = useState(false);
   const socket = useRef(null);
   const pc = useRef({}); // For RTCPeerConnection Objects
   const [mediaState, mediaDispatch] = useReducer(mediaReducer, {mic: true, cam: true});
   const [streamState, streamDispatch] = useReducer(streamReducer, {users: [], desk: []});
-  const [deskState, setDeskState] = useState(false);
   const navigate = useNavigate();
 
   const sendData = (data) => {
@@ -110,26 +152,6 @@ function CallScreen() {
       room: roomName,
       data: data,
     });
-  };
-
-  const startConnection = () => {
-    navigator.mediaDevices
-      .getUserMedia({
-        frameRate: { 
-          ideal: 8, 
-          max: 10 },
-        audio: true,
-        video: userVideoSize,
-      })
-      .then((stream) => {
-        console.log("Local Stream found");
-        localVideoRef.current.srcObject = stream;
-        socket.current.connect();
-        socket.current.emit("join", { username: localUsername, room: roomName });
-      })
-      .catch((error) => {
-        console.error("Stream not found: ", error);
-      });
   };
 
   const endConnection = () => {
@@ -170,11 +192,9 @@ function CallScreen() {
       pc.current[sid].onicecandidate = onIceCandidate(sid);
       pc.current[sid].onaddstream = onAddStream(sid);
       pc.current[sid].onremovestream = onRemoveStream(sid);
-      const localStream = localVideoRef.current.srcObject;
-      pc.current[sid].addStream(localStream);
-      if(deskState) {
-        const deskStream = deskVideoRef.current.srcObject;
-        pc.current[sid].addStream(deskStream);
+      pc.current[sid].addStream(localVideo);
+      if(deskVideo) {
+        pc.current[sid].addStream(deskVideo);
       }
       console.log("PeerConnection created", sid);
     } catch (error) {
@@ -231,7 +251,7 @@ function CallScreen() {
     socket.current = socketio(host, connectionOptions);
     socket.current.on("room_full", () => {
       console.log("Room is full!");
-      endStream(localVideoRef.current);
+      endStream(localVideo);
       endConnection();
     });
     socket.current.on("leave", (username) => {
@@ -239,7 +259,7 @@ function CallScreen() {
       pc.current[username].close();
       streamDispatch({type: 'remove', value: username});
     });
-    startConnection();
+    streamLocal(setLocalVideo);
     return function cleanup() {
       endConnection();
       window.removeEventListener('beforeunload', handleTabClosing);
@@ -247,18 +267,19 @@ function CallScreen() {
   }, []);
 
   useEffect(() => {
-    if(deskState) {
-      streamDesk(deskVideoRef.current);
-    } 
-    socket.current.on("ready", (username) => {
-      console.log("Ready to Connect!");
-      createPeerConnection(username);
-      sendOffer(username);
-    });
-    socket.current.on("data", (data, username) => {
-      signalingDataHandler(data, username);
-    });
-  }, [deskState]);
+    if(localVideo){
+      socket.current.on("ready", (username) => {
+        console.log("Ready to Connect!");
+        createPeerConnection(username);
+        sendOffer(username);
+      });
+      socket.current.on("data", (data, username) => {
+        signalingDataHandler(data, username);
+      });
+      socket.current.connect();
+      socket.current.emit("join", { username: localUsername, room: roomName });
+    }
+  }, [localVideo, deskVideo]);
 
   useEffect(() => {
     muteVideo(pc.current, !mediaState.cam);
@@ -266,71 +287,77 @@ function CallScreen() {
   }, [mediaState]);
   
   const renderVideos = (videos) => {
-    return videos.map(item => <VideoItem key={item.id} stream={item.stream}/>);
+    return videos.map(item => 
+      <Grid item xs={6}>
+        <Box>
+          <VideoItem key={item.id} stream={item.stream}/>
+        </Box>
+      </Grid>);
   };
 
-  const streamDesk = (localStream) => {
-    navigator.mediaDevices
-      .getDisplayMedia({
-        frameRate: { 
-          ideal: 8, 
-          max: 10 },
-        audio: true,
-        video: deskVideoSize,
-      })
-      .then((stream) => {
-        console.log("Desk Stream found");
-        localStream.srcObject = stream;
-        for (let sid in pc.current) {
-          pc.current[sid].addStream(stream);
-          sendOffer(sid);
-        }
-      })
-      .catch((error) => {
-        console.error("Stream not found: ", error);
-      });
+  const addStreamToPeers = (stream) => {
+    for (let sid in pc.current) {
+      pc.current[sid].addStream(stream);
+      sendOffer(sid);
+    }
   }
 
   const handleStream = () => {
-    if(deskState) {
+    if(deskVideo) {
       for (let sid in pc.current) {
-        pc.current[sid].removeStream(deskVideoRef.current.srcObject);
+        pc.current[sid].removeStream(deskVideo);
         sendOffer(sid);
       }
-      endStream(deskVideoRef.current);
-      setDeskState(false);
+      endStream(deskVideo);
+      setDeskVideo(false);
     } else {
-      setDeskState(true);
+      streamDesk(setDeskVideo, addStreamToPeers);
     }
   } 
 
   const handleEndCall = () => {
-    endStream(localVideoRef.current);
+    endStream(localVideo);
     endConnection();
     navigate("/");
   }
 
   return (
-    <div>
-      <label>{"Username: " + localUsername}</label>
-      <label>{"Room Id: " + roomName}</label>
-      <div>
-        <div className="usersContainer">
-          <video autoPlay muted playsInline ref={localVideoRef} />
+    <Container component="main">
+      <CssBaseline />
+      <Box
+                sx={{
+                marginTop: 8,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                }}
+      >
+      <Typography>{"Username: " + localUsername}</Typography>
+      <Typography>{"Room Id: " + roomName}</Typography>
+      <Container maxWidth='md' margin="normal">
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            <Box>
+              {localVideo ? <VideoItem key={"item"} stream={localVideo} muted/> : <></>}
+            </Box>
+          </Grid>
           {renderVideos(streamState.users)}
-        </div>
-        <div>
-          {deskState?<video className="deskVideo" autoPlay muted playsInline ref={deskVideoRef} />:null}
+        </Grid>
+        <Container>
+          {deskVideo? <VideoItem key={"item.id2"} stream={deskVideo} muted/>:null}
           {renderVideos(streamState.desk)}
-        </div>
-      </div>
-      <button onClick={() => mediaDispatch({type: 'video'})} 
-        style={{"color": mediaState.cam?"green":"red"}}>Video</button>
-      <button onClick={() => mediaDispatch({type: 'audio'})} 
-        style={{"color": mediaState.mic?"green":"red"}}>Audio</button>
-      <button onClick={handleStream} style={{"color": deskState?"green":"red"}}>Stream</button>
-      <button onClick={handleEndCall} style={{"color": "red"}}>End</button>
-    </div>
+        </Container>
+      </Container>
+      <ButtonGroup color="secondary" variant="outlined" aria-label="outlined button group">
+      <Button onClick={() => mediaDispatch({type: 'video'})} 
+        sx={{"color": mediaState.cam?"green":"red"}}>Video</Button>
+      <Button onClick={() => mediaDispatch({type: 'audio'})} 
+        sx={{"color": mediaState.mic?"green":"red"}}>Audio</Button>
+      <Button onClick={handleStream} sx={{"color": deskVideo?"green":"red"}}>Stream</Button>
+      <Button onClick={handleEndCall} sx={{"color": "red"}}>End</Button>
+      </ButtonGroup>
+      </Box>
+    </Container>
   );
 }
 

@@ -1,5 +1,11 @@
 import { useRef, useEffect } from "react";
 
+const videoStyle = {
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover'
+};
+
 function VideoItem(props) {
   const remoteVideoRef = useRef(null);
 
@@ -9,7 +15,7 @@ function VideoItem(props) {
   }, []);
 
   return (
-    <video autoPlay playsInline ref={remoteVideoRef} />
+    <video style={videoStyle} muted={props.muted} autoPlay playsInline ref={remoteVideoRef} />
   );
 }
 

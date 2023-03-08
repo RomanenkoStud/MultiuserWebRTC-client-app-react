@@ -13,6 +13,8 @@ const theme = createTheme();
 export default function HomeScreen() {
     const [room, setRoom] = useState("");
     const [username, setUsername] = useState("");
+    const [roomError, setRoomError] = useState(false);
+    const [usernameError, setUsernameError] = useState(false);
 
     const handleSubmit = (event) => {
     event.preventDefault();
@@ -40,6 +42,8 @@ export default function HomeScreen() {
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
                     <TextField
+                        error ={usernameError}
+                        helperText={usernameError ? "Error. Too short username" : ""}
                         margin="normal"
                         required
                         fullWidth
@@ -48,9 +52,15 @@ export default function HomeScreen() {
                         label="User"
                         name="user"
                         autoFocus
-                        onInput={(e) => setUsername(e.target.value)}
+                        onInput={(e) => {
+                                setUsername(e.target.value)
+                                setUsernameError(username.length >= 8 ? false : true)
+                            }
+                        }
                     />
                     <TextField
+                        error ={roomError}
+                        helperText={roomError ? "Error. Too short room name" : ""}
                         margin="normal"
                         required
                         fullWidth
@@ -58,7 +68,11 @@ export default function HomeScreen() {
                         label="Room"
                         type="text"
                         id="room"
-                        onInput={(e) => setRoom(e.target.value)}
+                        onInput={(e) => {
+                                setRoom(e.target.value)
+                                setRoomError(room.length >= 8 ? false : true )
+                            }
+                        }
                     />
                     <Link to={`/call/${username}/${room}`} style={{ textDecoration: 'none' }}>
                         <Button
