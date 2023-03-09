@@ -3,7 +3,7 @@ import { useRef, useEffect } from "react";
 const videoStyle = {
   width: '100%',
   height: '100%',
-  objectFit: 'cover'
+  objectFit: 'cover',
 };
 
 function VideoItem(props) {

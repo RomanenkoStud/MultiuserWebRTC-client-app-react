@@ -1,14 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState, useReducer } from "react";
 import socketio from "socket.io-client";
-import VideoItem from "./components/VideoItem";
-import Button from '@mui/material/Button';
-import ButtonGroup from '@mui/material/ButtonGroup';
-import CssBaseline from '@mui/material/CssBaseline';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
+import VideoItem from "../components/VideoItem";
+import { Button, ButtonGroup } from '@mui/material';
+import { CssBaseline, Box, Container, Grid, Paper } from '@mui/material';
+import { Typography } from '@mui/material';
+import { Skeleton } from '@mui/material';
+import { Snackbar, Alert } from '@mui/material';
 
 const host = "http://localhost:5000/";
 const connectionOptions = {
@@ -246,6 +244,17 @@ function CallScreen() {
     endConnection()
   }
 
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpenSnackbar(false);
+  };
+
   useEffect(() => {
     window.addEventListener('beforeunload', handleTabClosing);
     socket.current = socketio(host, connectionOptions);
@@ -258,6 +267,8 @@ function CallScreen() {
       console.log("Disconnect!");
       pc.current[username].close();
       streamDispatch({type: 'remove', value: username});
+      setSnackbarMessage(username + " left")
+      setOpenSnackbar(true);
     });
     streamLocal(setLocalVideo);
     return function cleanup() {
@@ -272,6 +283,8 @@ function CallScreen() {
         console.log("Ready to Connect!");
         createPeerConnection(username);
         sendOffer(username);
+        setSnackbarMessage(username + " joined")
+        setOpenSnackbar(true);
       });
       socket.current.on("data", (data, username) => {
         signalingDataHandler(data, username);
@@ -289,9 +302,9 @@ function CallScreen() {
   const renderVideos = (videos) => {
     return videos.map(item => 
       <Grid item xs={6}>
-        <Box>
+        <Paper elevation={3} sx={{overflow: 'hidden', aspectRatio : '1 / 1',}}>
           <VideoItem key={item.id} stream={item.stream}/>
-        </Box>
+        </Paper>
       </Grid>);
   };
 
@@ -335,20 +348,30 @@ function CallScreen() {
       <Typography>{"Username: " + localUsername}</Typography>
       <Typography>{"Room Id: " + roomName}</Typography>
       <Container maxWidth='md' margin="normal">
-        <Grid container spacing={2}>
+        <Grid container spacing={2} justifyContent="center" 
+        sx={{
+              marginBottom: 2
+        }}>
           <Grid item xs={6}>
-            <Box>
-              {localVideo ? <VideoItem key={"item"} stream={localVideo} muted/> : <></>}
-            </Box>
+            <Paper elevation={3} sx={{overflow: 'hidden', aspectRatio : '1 / 1',}}>
+              {localVideo ? <VideoItem key={"item"} stream={localVideo} muted/> : 
+              <Skeleton variant="rectangular" 
+                      sx={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                      }} 
+              />}
+            </Paper>
           </Grid>
           {renderVideos(streamState.users)}
         </Grid>
         <Container>
-          {deskVideo? <VideoItem key={"item.id2"} stream={deskVideo} muted/>:null}
+          {deskVideo? <VideoItem key={"item.id2"} stream={deskVideo} muted/> : <></>}
           {renderVideos(streamState.desk)}
         </Container>
       </Container>
-      <ButtonGroup color="secondary" variant="outlined" aria-label="outlined button group">
+      <ButtonGroup color="primary" variant="outlined" aria-label="outlined button group">
       <Button onClick={() => mediaDispatch({type: 'video'})} 
         sx={{"color": mediaState.cam?"green":"red"}}>Video</Button>
       <Button onClick={() => mediaDispatch({type: 'audio'})} 
@@ -357,6 +380,15 @@ function CallScreen() {
       <Button onClick={handleEndCall} sx={{"color": "red"}}>End</Button>
       </ButtonGroup>
       </Box>
+      <Snackbar
+          open={openSnackbar}
+          autoHideDuration={3000}
+          onClose={handleClose}
+      >
+        <Alert onClose={handleClose} severity="info" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
