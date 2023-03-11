@@ -3,10 +3,10 @@ import { useRef, useEffect, useState, useReducer } from "react";
 import socketio from "socket.io-client";
 import VideoItem from "../components/VideoItem";
 import { Button, ButtonGroup } from '@mui/material';
-import { CssBaseline, Box, Container, Grid, Paper } from '@mui/material';
+import { CssBaseline, Box, Container, Grid } from '@mui/material';
 import { Typography } from '@mui/material';
-import { Skeleton } from '@mui/material';
 import { Snackbar, Alert } from '@mui/material';
+import UserVideo from '../components/UserVideo';
 
 const host = "http://localhost:5000/";
 const connectionOptions = {
@@ -37,25 +37,41 @@ const STUN_SERVERS = {
 const userVideoSize = { height: 300, width: 300, };
 const deskVideoSize = { height: 720, width: 1280, };
 
-const muteAudio = (connections, audioState) => {
-  if (connections.length !== 0) {
-    for (const id in connections) {
-      let sender = connections[id].getSenders().find((s) => s.track.kind === "audio");
-      sender.track.enabled = !audioState;
+const muteAudio = (dataChannel, localStream, audioState) => {
+  const audioTrack = localStream.getAudioTracks()[0];
+  audioTrack.enabled = !audioState;
+  const event = new CustomEvent('mutedchange', { detail: { muted: audioState } });
+    audioTrack.dispatchEvent(event);
+
+    // Send a message to the remote peer over the data channel
+    const message = {
+      type: 'mute-track',
+      trackType: 'audio',
+      muted: audioState
+    };
+    for (const id in dataChannel) {
+      dataChannel[id].send(JSON.stringify(message));
     }
+}
+
+const muteVideo = (dataChannel, localStream, videoState) => {
+  const videoTrack = localStream.getVideoTracks()[0];
+  videoTrack.enabled = !videoState;
+  const event = new CustomEvent('mutedchange', { detail: { muted: videoState } });
+  videoTrack.dispatchEvent(event);
+
+  // Send a message to the remote peer over the data channel
+  const message = {
+    type: 'mute-track',
+    trackType: 'video',
+    muted: videoState
+  };
+  for (const id in dataChannel) {
+    dataChannel[id].send(JSON.stringify(message));
   }
 }
 
-const muteVideo = (connections, videoState) => {
-  if (connections.length !== 0) {
-    for (const id in connections) {
-      let sender = connections[id].getSenders().find((s) => s.track.kind === "video");
-      sender.track.enabled = !videoState;
-    }
-  }
-}
-
-const streamLocal = (setStream) => {
+const streamLocal = (localStreamDispatch) => {
   navigator.mediaDevices
     .getUserMedia({
       frameRate: { 
@@ -66,14 +82,14 @@ const streamLocal = (setStream) => {
     })
     .then((stream) => {
       console.log("Local Stream found");
-      setStream(stream);
+      localStreamDispatch({type: 'stream', value: {stream: stream}});
     })
     .catch((error) => {
       console.error("Stream not found: ", error);
     });
 };
 
-const streamDesk = (setStream, addStreamToPeers) => {
+const streamDesk = (localStreamDispatch, addStreamToPeers) => {
   navigator.mediaDevices
     .getDisplayMedia({
       frameRate: { 
@@ -84,7 +100,7 @@ const streamDesk = (setStream, addStreamToPeers) => {
     })
     .then((stream) => {
       console.log("Desk Stream found");
-      setStream(stream);
+      localStreamDispatch({type: 'desk', value: {desk: stream} })
       addStreamToPeers(stream);
     })
     .catch((error) => {
@@ -98,18 +114,35 @@ const endStream = (stream) => {
   });
 }
 
-const mediaReducer = (state, action) => {
+const localStreamReducer = (state, action) => {
   switch (action.type) {
+    case 'stream':
+      const audioState = action.value.stream ? action.value.stream.getAudioTracks()[0].enabled : false;
+      const videoState = action.value.stream ? action.value.stream.getVideoTracks()[0].enabled : false;
+      return {stream: action.value.stream, desk: state.desk, mic: audioState, cam: videoState};
+    case 'desk':
+      if(!action.value.desk) {
+        endStream(state.desk);
+      }
+      return {stream: state.stream, desk: action.value.desk, mic: state.mic, cam: state.cam};
     case 'audio':
-      return {mic: !state.mic, cam: state.cam};
+      muteAudio(action.value.dataChannel, state.stream, state.mic);
+      return {stream: state.stream, desk: state.desk, mic: !state.mic, cam: state.cam};
     case 'video':
-      return {mic: state.mic, cam: !state.cam};
+      muteVideo(action.value.dataChannel, state.stream, state.cam);
+      return {stream: state.stream, desk: state.desk, mic: state.mic, cam: !state.cam};
+    case 'end':
+      if(state.desk) {
+        endStream(state.desk);
+      }
+      endStream(state.stream);
+      return {stream: false, desk: false, mic: true, cam: true}
     default:
       throw new Error();
   }
 }
 
-const streamReducer = (state, action) => {
+const remoteStreamsReducer = (state, action) => {
   switch (action.type) {
     case 'add':
       const exist = state.users.find(item => item.id === action.value.id);
@@ -125,6 +158,19 @@ const streamReducer = (state, action) => {
       let newStreams1 = state.users.filter(function(item) { return item.id !== action.value });
       let newStreams2 = state.desk.filter(function(item) { return item.id !== action.value });
       return {users: newStreams1, desk: newStreams2};
+    case 'mute':
+      const user = state.users.find(item => item.id === action.value.id);
+      let track = null;
+      if(action.value.trackType === 'audio') {
+        track = user.stream.getAudioTracks()[0];
+      }
+      if(action.value.trackType === 'video') {
+        track = user.stream.getVideoTracks()[0];
+      }
+      if (track) {
+        track.enabled = !action.value.muted;
+      }
+      return {users: state.users, desk: state.desk};
     case 'empty':
       return {users: [], desk: []};
     default:
@@ -136,12 +182,15 @@ function CallScreen() {
   const params = useParams();
   const localUsername = params.username;
   const roomName = params.room;
-  const [localVideo, setLocalVideo] = useState(false);
-  const [deskVideo, setDeskVideo] = useState(false);
   const socket = useRef(null);
   const pc = useRef({}); // For RTCPeerConnection Objects
-  const [mediaState, mediaDispatch] = useReducer(mediaReducer, {mic: true, cam: true});
-  const [streamState, streamDispatch] = useReducer(streamReducer, {users: [], desk: []});
+  const dataChannel = useRef({}); 
+  const [localStreamState, localStreamDispatch] = useReducer(localStreamReducer, 
+    {stream: false, desk: false, mic: true, cam: true});
+  const [remoteStreamsState, remoteStreamsDispatch] = useReducer(remoteStreamsReducer,
+    {users: [], desk: []});
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
   const navigate = useNavigate();
 
   const sendData = (data) => {
@@ -158,7 +207,7 @@ function CallScreen() {
     for (let sid in pc.current) {
       pc.current[sid].close();
     }
-    streamDispatch({type: 'empty'});
+    remoteStreamsDispatch({type: 'empty'});
   };
 
   const onIceCandidate = (sid) => {
@@ -175,13 +224,13 @@ function CallScreen() {
   const onAddStream = (sid) => {
     return (event) => {
     console.log("Adding remote stream");
-    streamDispatch({type: 'add', value: {id: sid, stream: event.stream}});
+    remoteStreamsDispatch({type: 'add', value: {id: sid, stream: event.stream}});
   };}
 
   const onRemoveStream = (sid) => {
     return (event) => {
     console.log("Delete remote stream");
-    streamDispatch({type: 'removeDemo', value: sid});
+    remoteStreamsDispatch({type: 'removeDemo', value: sid});
   };}
 
   const createPeerConnection = (sid) => {
@@ -190,9 +239,21 @@ function CallScreen() {
       pc.current[sid].onicecandidate = onIceCandidate(sid);
       pc.current[sid].onaddstream = onAddStream(sid);
       pc.current[sid].onremovestream = onRemoveStream(sid);
-      pc.current[sid].addStream(localVideo);
-      if(deskVideo) {
-        pc.current[sid].addStream(deskVideo);
+      pc.current[sid].addStream(localStreamState.stream);
+      dataChannel.current[sid] = pc.current[sid].createDataChannel('my-channel');
+      dataChannel.current[sid].onopen = () => console.log('Data channel is open');
+      pc.current[sid].ondatachannel = (event) => {
+        const dataChannel = event.channel;
+        dataChannel.onopen = () => console.log('Data channel is open for recieving');
+        dataChannel.onmessage = (event) => {
+          const message = JSON.parse(event.data);
+          if (message.type === 'mute-track') {
+            remoteStreamsDispatch({type: 'mute', value: {id: sid, trackType: message.trackType, muted: message.muted}});
+          }
+        };
+      };
+      if(localStreamState.desk) {
+        pc.current[sid].addStream(localStreamState.desk);
       }
       console.log("PeerConnection created", sid);
     } catch (error) {
@@ -244,10 +305,7 @@ function CallScreen() {
     endConnection()
   }
 
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-
-  const handleClose = (event, reason) => {
+  const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
     }
@@ -260,17 +318,17 @@ function CallScreen() {
     socket.current = socketio(host, connectionOptions);
     socket.current.on("room_full", () => {
       console.log("Room is full!");
-      endStream(localVideo);
+      localStreamDispatch({type: 'end'});
       endConnection();
     });
     socket.current.on("leave", (username) => {
       console.log("Disconnect!");
       pc.current[username].close();
-      streamDispatch({type: 'remove', value: username});
+      remoteStreamsDispatch({type: 'remove', value: username});
       setSnackbarMessage(username + " left")
       setOpenSnackbar(true);
     });
-    streamLocal(setLocalVideo);
+    streamLocal(localStreamDispatch);
     return function cleanup() {
       endConnection();
       window.removeEventListener('beforeunload', handleTabClosing);
@@ -278,7 +336,7 @@ function CallScreen() {
   }, []);
 
   useEffect(() => {
-    if(localVideo){
+    if(localStreamState.stream){
       socket.current.on("ready", (username) => {
         console.log("Ready to Connect!");
         createPeerConnection(username);
@@ -292,44 +350,35 @@ function CallScreen() {
       socket.current.connect();
       socket.current.emit("join", { username: localUsername, room: roomName });
     }
-  }, [localVideo, deskVideo]);
-
-  useEffect(() => {
-    muteVideo(pc.current, !mediaState.cam);
-    muteAudio(pc.current, !mediaState.mic);
-  }, [mediaState]);
+  }, [localStreamState.stream]);
   
   const renderVideos = (videos) => {
     return videos.map(item => 
-      <Grid item xs={6}>
-        <Paper elevation={3} sx={{overflow: 'hidden', aspectRatio : '1 / 1',}}>
-          <VideoItem key={item.id} stream={item.stream}/>
-        </Paper>
+      <Grid key={item.id} item xs={6}>
+        <UserVideo stream={item.stream}/>
       </Grid>);
   };
 
-  const addStreamToPeers = (stream) => {
-    for (let sid in pc.current) {
-      pc.current[sid].addStream(stream);
-      sendOffer(sid);
-    }
-  }
-
-  const handleStream = () => {
-    if(deskVideo) {
+  const handleDesk = () => {
+    const addStreamToPeers = (stream) => {
       for (let sid in pc.current) {
-        pc.current[sid].removeStream(deskVideo);
+        pc.current[sid].addStream(stream);
         sendOffer(sid);
       }
-      endStream(deskVideo);
-      setDeskVideo(false);
+    }
+    if(localStreamState.desk) {
+      for (let sid in pc.current) {
+        pc.current[sid].removeStream(localStreamState.desk);
+        sendOffer(sid);
+      }
+      localStreamDispatch({type: 'desk', value: {desk: false} })
     } else {
-      streamDesk(setDeskVideo, addStreamToPeers);
+      streamDesk(localStreamDispatch, addStreamToPeers);
     }
   } 
 
   const handleEndCall = () => {
-    endStream(localVideo);
+    localStreamDispatch({type: 'end'});
     endConnection();
     navigate("/");
   }
@@ -353,39 +402,30 @@ function CallScreen() {
               marginBottom: 2
         }}>
           <Grid item xs={6}>
-            <Paper elevation={3} sx={{overflow: 'hidden', aspectRatio : '1 / 1',}}>
-              {localVideo ? <VideoItem key={"item"} stream={localVideo} muted/> : 
-              <Skeleton variant="rectangular" 
-                      sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                      }} 
-              />}
-            </Paper>
+            <UserVideo stream={localStreamState.stream} muted/> 
           </Grid>
-          {renderVideos(streamState.users)}
+          {renderVideos(remoteStreamsState.users)}
         </Grid>
         <Container>
-          {deskVideo? <VideoItem key={"item.id2"} stream={deskVideo} muted/> : <></>}
-          {renderVideos(streamState.desk)}
+          {localStreamState.desk? <VideoItem stream={localStreamState.desk} muted/> : <></>}
+          {renderVideos(remoteStreamsState.desk)}
         </Container>
       </Container>
       <ButtonGroup color="primary" variant="outlined" aria-label="outlined button group">
-      <Button onClick={() => mediaDispatch({type: 'video'})} 
-        sx={{"color": mediaState.cam?"green":"red"}}>Video</Button>
-      <Button onClick={() => mediaDispatch({type: 'audio'})} 
-        sx={{"color": mediaState.mic?"green":"red"}}>Audio</Button>
-      <Button onClick={handleStream} sx={{"color": deskVideo?"green":"red"}}>Stream</Button>
+      <Button onClick={() => localStreamDispatch({type: 'video', value: {dataChannel: dataChannel.current} })} 
+        sx={{"color": localStreamState.cam?"green":"red"}}>Video</Button>
+      <Button onClick={() => localStreamDispatch({type: 'audio', value: {dataChannel: dataChannel.current}})} 
+        sx={{"color": localStreamState.mic?"green":"red"}}>Audio</Button>
+      <Button onClick={handleDesk} sx={{"color": localStreamState.desk?"green":"red"}}>Stream</Button>
       <Button onClick={handleEndCall} sx={{"color": "red"}}>End</Button>
       </ButtonGroup>
       </Box>
       <Snackbar
           open={openSnackbar}
           autoHideDuration={3000}
-          onClose={handleClose}
+          onClose={handleSnackbarClose}
       >
-        <Alert onClose={handleClose} severity="info" sx={{ width: '100%' }}>
+        <Alert onClose={handleSnackbarClose} severity="info" sx={{ width: '100%' }}>
           {snackbarMessage}
         </Alert>
       </Snackbar>
