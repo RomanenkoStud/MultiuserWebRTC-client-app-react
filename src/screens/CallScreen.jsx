@@ -40,8 +40,6 @@ const deskVideoSize = { height: 720, width: 1280, };
 const muteAudio = (dataChannel, localStream, audioState) => {
   const audioTrack = localStream.getAudioTracks()[0];
   audioTrack.enabled = !audioState;
-  const event = new CustomEvent('mutedchange', { detail: { muted: audioState } });
-    audioTrack.dispatchEvent(event);
 
     // Send a message to the remote peer over the data channel
     const message = {
@@ -57,8 +55,6 @@ const muteAudio = (dataChannel, localStream, audioState) => {
 const muteVideo = (dataChannel, localStream, videoState) => {
   const videoTrack = localStream.getVideoTracks()[0];
   videoTrack.enabled = !videoState;
-  const event = new CustomEvent('mutedchange', { detail: { muted: videoState } });
-  videoTrack.dispatchEvent(event);
 
   // Send a message to the remote peer over the data channel
   const message = {
@@ -131,12 +127,6 @@ const localStreamReducer = (state, action) => {
     case 'video':
       muteVideo(action.value.dataChannel, state.stream, state.cam);
       return {stream: state.stream, desk: state.desk, mic: state.mic, cam: !state.cam};
-    case 'end':
-      if(state.desk) {
-        endStream(state.desk);
-      }
-      endStream(state.stream);
-      return {stream: false, desk: false, mic: true, cam: true}
     default:
       throw new Error();
   }
@@ -223,7 +213,6 @@ function CallScreen() {
 
   const onAddStream = (sid) => {
     return (event) => {
-    console.log("Adding remote stream");
     remoteStreamsDispatch({type: 'add', value: {id: sid, stream: event.stream}});
   };}
 
@@ -241,10 +230,28 @@ function CallScreen() {
       pc.current[sid].onremovestream = onRemoveStream(sid);
       pc.current[sid].addStream(localStreamState.stream);
       dataChannel.current[sid] = pc.current[sid].createDataChannel('my-channel');
-      dataChannel.current[sid].onopen = () => console.log('Data channel is open');
+      dataChannel.current[sid].onopen = () => {
+        console.log('Data channel is open');
+        const videoState = localStreamState.stream.getVideoTracks()[0].enabled;
+        const audioState = localStreamState.stream.getAudioTracks()[0].enabled;
+        const audioMessage = {
+          type: 'mute-track',
+          trackType: 'audio',
+          muted: !audioState
+        };
+        dataChannel.current[sid].send(JSON.stringify(audioMessage));
+        const videoMessage = {
+          type: 'mute-track',
+          trackType: 'video',
+          muted: !videoState
+        };
+        dataChannel.current[sid].send(JSON.stringify(videoMessage));
+      }
       pc.current[sid].ondatachannel = (event) => {
         const dataChannel = event.channel;
-        dataChannel.onopen = () => console.log('Data channel is open for recieving');
+        dataChannel.onopen = () => {
+          console.log('Data channel is open for recieving');
+        }
         dataChannel.onmessage = (event) => {
           const message = JSON.parse(event.data);
           if (message.type === 'mute-track') {
@@ -324,6 +331,8 @@ function CallScreen() {
     socket.current.on("leave", (username) => {
       console.log("Disconnect!");
       pc.current[username].close();
+      delete pc.current[username];
+      delete dataChannel.current[username];
       remoteStreamsDispatch({type: 'remove', value: username});
       setSnackbarMessage(username + " left")
       setOpenSnackbar(true);
@@ -335,13 +344,14 @@ function CallScreen() {
     };
   }, []);
 
+  
   useEffect(() => {
     if(localStreamState.stream){
       socket.current.on("ready", (username) => {
         console.log("Ready to Connect!");
         createPeerConnection(username);
         sendOffer(username);
-        setSnackbarMessage(username + " joined")
+        setSnackbarMessage(username + " joined");
         setOpenSnackbar(true);
       });
       socket.current.on("data", (data, username) => {
@@ -355,7 +365,7 @@ function CallScreen() {
   const renderVideos = (videos) => {
     return videos.map(item => 
       <Grid key={item.id} item xs={6}>
-        <UserVideo stream={item.stream}/>
+        <UserVideo stream={item.stream} username={item.id}/>
       </Grid>);
   };
 
@@ -378,7 +388,10 @@ function CallScreen() {
   } 
 
   const handleEndCall = () => {
-    localStreamDispatch({type: 'end'});
+    if(localStreamState.desk) {
+      endStream(localStreamState.desk);
+    }
+    endStream(localStreamState.stream);
     endConnection();
     navigate("/");
   }
@@ -402,7 +415,7 @@ function CallScreen() {
               marginBottom: 2
         }}>
           <Grid item xs={6}>
-            <UserVideo stream={localStreamState.stream} muted/> 
+            <UserVideo stream={localStreamState.stream} username="you" muted/> 
           </Grid>
           {renderVideos(remoteStreamsState.users)}
         </Grid>

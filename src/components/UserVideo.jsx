@@ -1,7 +1,8 @@
 import VideoItem from "./VideoItem";
-import { Paper, Box } from '@mui/material';
+import UserVideoPlaceholder from "./UserVideoPlaceholder";
+import { Paper } from '@mui/material';
 import { Skeleton } from '@mui/material';
-import { Chip, Avatar } from '@mui/material';
+import { Chip } from '@mui/material';
 import Mic from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
 
@@ -12,23 +13,18 @@ function UserVideo(props) {
     return (
         <Paper elevation={3} sx={{overflow: 'hidden', aspectRatio : '1 / 1', position: 'relative'}}>
             {props.stream ? 
-            (videoState ? <VideoItem stream={props.stream} muted={props.muted}/> : 
-            <Box sx={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                bgcolor: (theme) => theme.palette.primary.main,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                }} ><Avatar sx={{ bgcolor: 'default', width: 200, height: 200  }}>Avatar</Avatar></Box>) : 
-            <Skeleton variant="rectangular" 
-                    sx={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                    }} 
-            />}
+                (videoState ? 
+                    <VideoItem stream={props.stream} muted={props.muted}/> : 
+                    <UserVideoPlaceholder username={props.username}/>
+                ) : 
+                    <Skeleton variant="rectangular" 
+                            sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                            }} 
+                    />
+            }
             <Chip color="default"  
             sx={{
                 position: 'absolute',
