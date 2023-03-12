@@ -128,6 +128,8 @@ const localStreamReducer = (state, action) => {
     case 'video':
       muteVideo(action.value.dataChannel, state.stream, state.cam);
       return {stream: state.stream, desk: state.desk, mic: state.mic, cam: !state.cam};
+    case 'end':
+      return {stream: false, desk: false, mic: true, cam: true};
     default:
       throw new Error();
   }
@@ -193,11 +195,18 @@ function CallScreen() {
   };
 
   const endConnection = () => {
+    if(localStreamState.desk) {
+      endStream(localStreamState.desk);
+    }
+    if(localStreamState.stream) {
+    endStream(localStreamState.stream);
+    }
     socket.current.emit("leave", { username: localUsername, room: roomName });
     socket.current.close();
     for (let sid in pc.current) {
       pc.current[sid].close();
     }
+    localStreamDispatch({type: 'end'});
     remoteStreamsDispatch({type: 'empty'});
   };
 
@@ -389,10 +398,6 @@ function CallScreen() {
   } 
 
   const handleEndCall = () => {
-    if(localStreamState.desk) {
-      endStream(localStreamState.desk);
-    }
-    endStream(localStreamState.stream);
     endConnection();
     navigate("/");
   }
