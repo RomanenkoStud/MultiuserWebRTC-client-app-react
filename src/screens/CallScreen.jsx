@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useRef, useEffect, useState, useReducer } from "react";
 import socketio from "socket.io-client";
 import VideoItem from "../components/VideoItem";
@@ -7,6 +7,7 @@ import { CssBaseline, Box, Container, Grid } from '@mui/material';
 import { Typography } from '@mui/material';
 import { Snackbar, Alert } from '@mui/material';
 import UserVideo from '../components/UserVideo';
+import { useLogoAnimation } from '../hooks/useLogoAnimation';
 
 const host = "http://localhost:5000/";
 const connectionOptions = {
@@ -181,7 +182,7 @@ function CallScreen() {
     {users: [], desk: []});
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const navigate = useNavigate();
+  const { navigate } = useLogoAnimation();
 
   const sendData = (data) => {
     socket.current.emit("data", {

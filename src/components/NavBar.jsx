@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { styled, alpha } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -14,6 +14,8 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import MailIcon from '@mui/icons-material/Mail';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
+import { LogoAnimationContext } from './LogoAnimationContext';
+import RoomConnectIcon from '../icons/RoomConnectIcon';
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -56,11 +58,20 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function NavBar() {
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
+    const { logoAnimationState, setLogoAnimationState } = useContext(LogoAnimationContext);
 
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+
+    useEffect(() => {
+        if (logoAnimationState) {
+            setTimeout(() => {
+                setLogoAnimationState(false);
+            }, 3000);
+        }
+    }, [logoAnimationState]);
 
     const handleProfileMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -162,12 +173,15 @@ export default function NavBar() {
                 edge="start"
                 color="inherit"
                 aria-label="open drawer"
-                sx={{ mr: 2 }}
+                sx={{mr: 2}}
             >
                 <MenuIcon />
             </IconButton>
-            <img alt="" src="/logo-light.png" style={{ width:'150px', height: 'auto'}}/>
-            <Search>
+            <RoomConnectIcon 
+                animation={logoAnimationState} 
+                style={{ width: '150px', height: '50px' }} 
+            />
+            {/*<Search>
                 <SearchIconWrapper>
                 <SearchIcon />
                 </SearchIconWrapper>
@@ -175,7 +189,7 @@ export default function NavBar() {
                 placeholder="Search…"
                 inputProps={{ 'aria-label': 'search' }}
                 />
-            </Search>
+            </Search>*/}
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
                 <IconButton size="large" aria-label="show 4 new mails" color="inherit">

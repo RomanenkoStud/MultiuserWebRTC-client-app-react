@@ -2,6 +2,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import RouteList from "./screens/RouteList";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import NavBar from "./components/NavBar";
+import { LogoAnimationProvider } from './components/LogoAnimationContext';
 
 const theme = createTheme({
     palette: {
@@ -20,10 +21,12 @@ const theme = createTheme({
 function App() {
   return (
     <ThemeProvider theme={theme}>
-    <NavBar></NavBar>
-      <Router>
-        <RouteList />
-      </Router>
+      <LogoAnimationProvider>
+        <NavBar></NavBar>
+          <Router>
+            <RouteList />
+          </Router>
+      </LogoAnimationProvider>
     </ThemeProvider>
   );
 }

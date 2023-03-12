@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import LinkWithLogoAnimation from "../components/LinkWithLogoAnimation";
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
@@ -70,7 +70,7 @@ export default function HomeScreen() {
                         }
                     }
                 />
-                <Link to={`/call/${username}/${room}`} style={{ textDecoration: 'none' }}>
+                <LinkWithLogoAnimation to={`/call/${username}/${room}`} style={{ textDecoration: 'none' }}>
                     <Button
                         type="submit"
                         fullWidth
@@ -79,7 +79,7 @@ export default function HomeScreen() {
                     >
                         Connect
                     </Button>
-                </Link>
+                </LinkWithLogoAnimation>
             </Box>
         </Box>
     </Container>
