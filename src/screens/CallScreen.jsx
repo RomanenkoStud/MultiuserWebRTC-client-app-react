@@ -8,6 +8,7 @@ import { Typography } from '@mui/material';
 import { Snackbar, Alert } from '@mui/material';
 import UserVideo from '../components/UserVideo';
 import { useLogoAnimation } from '../hooks/useLogoAnimation';
+import Chat from "../components/Chat";
 
 const host = "http://localhost:5000/";
 const connectionOptions = {
@@ -184,6 +185,7 @@ function CallScreen() {
     {users: [], desk: []});
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
   const { navigate } = useLogoAnimation();
 
   const sendData = (data) => {
@@ -330,6 +332,14 @@ function CallScreen() {
     setOpenSnackbar(false);
   };
 
+  const handleChatOpen = () => {
+    setChatOpen(true);
+  };
+
+  const handleChatClose = () => {
+    setChatOpen(false);
+  };
+
   useEffect(() => {
     window.addEventListener('beforeunload', handleTabClosing);
     socket.current = socketio(host, connectionOptions);
@@ -430,12 +440,20 @@ function CallScreen() {
           {renderVideos(remoteStreamsState.desk)}
         </Container>
       </Container>
+      <Chat 
+        isOpen={chatOpen} 
+        onClose={handleChatClose} 
+        socket={socket.current} 
+        localUsername={localUsername}
+        roomName={roomName}
+      />
       <ButtonGroup color="primary" variant="outlined" aria-label="outlined button group">
       <Button onClick={() => localStreamDispatch({type: 'video', value: {dataChannel: dataChannel.current} })} 
         sx={{"color": localStreamState.cam?"green":"red"}}>Video</Button>
       <Button onClick={() => localStreamDispatch({type: 'audio', value: {dataChannel: dataChannel.current}})} 
         sx={{"color": localStreamState.mic?"green":"red"}}>Audio</Button>
       <Button onClick={handleDesk} sx={{"color": localStreamState.desk?"green":"red"}}>Stream</Button>
+      <Button color="primary" onClick={handleChatOpen}>Open Chat</Button>
       <Button onClick={handleEndCall} sx={{"color": "red"}}>End</Button>
       </ButtonGroup>
       </Box>
