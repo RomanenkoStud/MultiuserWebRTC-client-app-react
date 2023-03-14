@@ -5,13 +5,22 @@ import { Skeleton } from '@mui/material';
 import { Chip } from '@mui/material';
 import Mic from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
+import { useSpeakingDetector } from "../hooks/useSpeakingDetector"
 
 function UserVideo(props) {
     const audioState = props.stream ? props.stream.getAudioTracks()[0].enabled : false;
     const videoState = props.stream ? props.stream.getVideoTracks()[0].enabled : false;
+    const isSpeaking = useSpeakingDetector(props.stream);
+
+    const shadowColor = 'rgba(33, 78, 40, 0.5)';
+    const shadowThickness = isSpeaking ? 20 : 3;
 
     return (
-        <Paper elevation={3} sx={{overflow: 'hidden', aspectRatio : '1 / 1', position: 'relative'}}>
+        <Paper elevation={3} 
+            sx={{overflow: 'hidden', aspectRatio : '1 / 1', position: 'relative',
+            boxShadow: `${shadowColor} 0px 0px ${shadowThickness}px`,
+            }}
+        >
             {props.stream ? 
                 (videoState ? 
                     <VideoItem stream={props.stream} muted={props.muted}/> : 
