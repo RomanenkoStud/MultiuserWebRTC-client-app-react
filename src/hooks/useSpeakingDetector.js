@@ -31,7 +31,6 @@ export const useSpeakingDetector = (stream) => {
 
     return () => {
       source.disconnect(analyser);
-      analyser.disconnect(audioContext.destination);
     };
   }, [stream]);
 
