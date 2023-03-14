@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '@mui/material/styles';
 import {
     TextField,
     Button,
@@ -12,6 +13,7 @@ import {
 } from '@mui/material';
 
 function Chat({isOpen, onClose, socket, localUsername, roomName}) {
+    const theme = useTheme();
     const [messages, setMessages] = useState([]);
     const [messageInput, setMessageInput] = useState('');
 
@@ -59,15 +61,30 @@ function Chat({isOpen, onClose, socket, localUsername, roomName}) {
     }, [socket]);
 
     return (
-        <Dialog open={isOpen} onClose={onClose}>
+        <Dialog open={isOpen} onClose={onClose} >
         <DialogTitle>Chat</DialogTitle>
         <DialogContent>
             <List style={{ maxHeight: '300px', overflowY: 'auto' }} id="messages-container">
             {messages.map((element) => (
-                <ListItem key={element.message.id}>
-                    <ListItemText 
-                    primary={element.message.text} 
+                <ListItem
+                key={element.message.id}
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: element.username === localUsername ? 'flex-end' : 'flex-start',
+                    marginBottom: '10px',
+                }}
+                >
+                <ListItemText
+                    primary={element.message.text}
                     secondary={`From ${element.username} at ${element.message.time}`}
+                    style={{
+                        background: element.username === localUsername ? '#eee' : theme.palette.primary.light,
+                        borderRadius: '15px',
+                        padding: '10px',
+                        maxWidth: '70%',
+                        wordWrap: 'break-word',
+                    }}
                 />
                 </ListItem>
             ))}
