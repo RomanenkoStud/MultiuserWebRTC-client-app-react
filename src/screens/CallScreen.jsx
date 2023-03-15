@@ -9,7 +9,8 @@ import { Snackbar, Alert } from '@mui/material';
 import UserVideo from '../components/UserVideo';
 import { useLogoAnimation } from '../hooks/useLogoAnimation';
 import Chat from "../components/Chat";
-import { useCameraBlurBackground } from "../hooks/useCameraBlurBackground";
+import Camera  from "../components/Camera";
+import ScreenSharing from "../components/ScreenSharing";
 
 const host = "http://localhost:5000/";
 const connectionOptions = {
@@ -37,8 +38,6 @@ const STUN_SERVERS = {
     },
   ],
 };
-const userVideoSize = { height: 300, width: 300, };
-const deskVideoSize = { height: 720, width: 1280, };
 
 const muteAudio = (dataChannel, localStream, audioState) => {
   const audioTrack = localStream.getAudioTracks()[0];
@@ -68,43 +67,6 @@ const muteVideo = (dataChannel, localStream, videoState) => {
   for (const id in dataChannel) {
     dataChannel[id].send(JSON.stringify(message));
   }
-}
-
-const streamLocal = (localStreamDispatch) => {
-  navigator.mediaDevices
-    .getUserMedia({
-      frameRate: { 
-        ideal: 8, 
-        max: 10 },
-      audio: true,
-      video: userVideoSize,
-    })
-    .then((stream) => {
-      console.log("Local Stream found");
-      localStreamDispatch({type: 'stream', value: {stream: stream}});
-    })
-    .catch((error) => {
-      console.error("Stream not found: ", error);
-    });
-};
-
-const streamDesk = (localStreamDispatch, addStreamToPeers) => {
-  navigator.mediaDevices
-    .getDisplayMedia({
-      frameRate: { 
-        ideal: 8, 
-        max: 10 },
-      audio: true,
-      video: deskVideoSize,
-    })
-    .then((stream) => {
-      console.log("Desk Stream found");
-      localStreamDispatch({type: 'desk', value: {desk: stream} })
-      addStreamToPeers(stream);
-    })
-    .catch((error) => {
-      console.error("Stream not found: ", error);
-    });
 }
 
 const endStream = (stream) => {
@@ -187,17 +149,34 @@ function CallScreen() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
+  const [deskState, setDeskState] = useState(false);
   const { navigate } = useLogoAnimation();
 
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const stream = useCameraBlurBackground(videoRef, canvasRef);
+  const setCameraStream = (stream) => {
+    localStreamDispatch({type: 'stream', value: {stream: stream}});
+  }
+
+  const setDeskStream = (stream) => {
+    if(stream) {
+        localStreamDispatch({type: 'desk', value: {desk: stream} })
+        for (let sid in pc.current) {
+          pc.current[sid].addStream(stream);
+          sendOffer(sid);
+      }
+    } else {
+      for (let sid in pc.current) {
+        pc.current[sid].removeStream(localStreamState.desk);
+        sendOffer(sid);
+      }
+      localStreamDispatch({type: 'desk', value: {desk: false} })
+    }
+  }
 
   useEffect(() => {
-    if(stream){
-      localStreamDispatch({type: 'stream', value: {stream: stream}});
+    if(!deskState && localStreamState.desk){
+      setDeskStream(false);
     }
-  }, [stream]);
+  }, [deskState]);
 
   const sendData = (data) => {
     socket.current.emit("data", {
@@ -374,7 +353,6 @@ function CallScreen() {
     };
   }, []);
 
-  
   useEffect(() => {
     if(localStreamState.stream){
       socket.current.on("ready", (username) => {
@@ -390,30 +368,38 @@ function CallScreen() {
       socket.current.connect();
       socket.current.emit("join", { username: localUsername, room: roomName });
     }
-  }, [localStreamState.stream]);
+    
+    if(localStreamState.desk){
+      socket.current.off("ready");
+      socket.current.on("ready", (username) => {
+        console.log("Ready to Connect!");
+        createPeerConnection(username);
+        sendOffer(username);
+        setSnackbarMessage(username + " joined");
+        setOpenSnackbar(true);
+      });
+    }
+  }, [localStreamState.stream, localStreamState.desk]);
   
-  const renderVideos = (videos) => {
+  const renderUserVideos = (videos) => {
     return videos.map(item => 
       <Grid key={item.id} item xs={6}>
         <UserVideo stream={item.stream} username={item.id}/>
       </Grid>);
   };
 
+  const renderVideos = (videos) => {
+    return videos.map(item => 
+      <Grid key={item.id} item xs={6}>
+        <VideoItem stream={item.stream}/>
+      </Grid>);
+  };
+
   const handleDesk = () => {
-    const addStreamToPeers = (stream) => {
-      for (let sid in pc.current) {
-        pc.current[sid].addStream(stream);
-        sendOffer(sid);
-      }
-    }
-    if(localStreamState.desk) {
-      for (let sid in pc.current) {
-        pc.current[sid].removeStream(localStreamState.desk);
-        sendOffer(sid);
-      }
-      localStreamDispatch({type: 'desk', value: {desk: false} })
+    if(deskState) {
+      setDeskState(false);
     } else {
-      streamDesk(localStreamDispatch, addStreamToPeers);
+      setDeskState(true);
     }
   } 
 
@@ -441,14 +427,12 @@ function CallScreen() {
               marginBottom: 2
         }}>
           <Grid item xs={6}>
-            <UserVideo stream={localStreamState.stream} username="you" muted/> 
-            <video className="input-video" ref={videoRef} style={{ display: 'none',}}></video>
-            <canvas className="output-canvas" style={{ display: 'none',}} ref={canvasRef}></canvas>
+            <Camera setStream={setCameraStream}/> 
           </Grid>
-          {renderVideos(remoteStreamsState.users)}
+          {renderUserVideos(remoteStreamsState.users)}
         </Grid>
         <Container>
-          {localStreamState.desk? <VideoItem stream={localStreamState.desk} muted/> : <></>}
+          {deskState? <ScreenSharing setStream={setDeskStream}/> : <></>}
           {renderVideos(remoteStreamsState.desk)}
         </Container>
       </Container>
@@ -464,7 +448,7 @@ function CallScreen() {
         sx={{"color": localStreamState.cam?"green":"red"}}>Video</Button>
       <Button onClick={() => localStreamDispatch({type: 'audio', value: {dataChannel: dataChannel.current}})} 
         sx={{"color": localStreamState.mic?"green":"red"}}>Audio</Button>
-      <Button onClick={handleDesk} sx={{"color": localStreamState.desk?"green":"red"}}>Stream</Button>
+      <Button onClick={handleDesk} sx={{"color": deskState?"green":"red"}}>Stream</Button>
       <Button color="primary" onClick={handleChatOpen}>Open Chat</Button>
       <Button onClick={handleEndCall} sx={{"color": "red"}}>End</Button>
       </ButtonGroup>

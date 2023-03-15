@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Camera } from "@mediapipe/camera_utils";
 import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
 
 
-export const useCameraBlurBackground = (videoRef, canvasRef) => {
+export const useCameraBlurBackground = () => {
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
     const [stream, setStream] = useState();
     useEffect(() => {
         const videoElement = videoRef.current;
@@ -59,5 +61,5 @@ export const useCameraBlurBackground = (videoRef, canvasRef) => {
             selfieSegmentation.reset();
         }
     }, []);
-    return stream;
+    return {videoRef, canvasRef, stream};
 };
