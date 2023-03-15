@@ -10,9 +10,10 @@ function VideoItem(props) {
   const remoteVideoRef = useRef(null);
 
   useEffect(() => {
-    if(props.stream !== null)
+    if(props.stream !== null) {
       remoteVideoRef.current.srcObject = props.stream;
-  }, []);
+    }
+  }, [props.stream]);
 
   return (
     <video style={videoStyle} muted={props.muted} autoPlay playsInline ref={remoteVideoRef} />

@@ -9,6 +9,7 @@ import { Snackbar, Alert } from '@mui/material';
 import UserVideo from '../components/UserVideo';
 import { useLogoAnimation } from '../hooks/useLogoAnimation';
 import Chat from "../components/Chat";
+import { useCameraBlurBackground } from "../hooks/useCameraBlurBackground";
 
 const host = "http://localhost:5000/";
 const connectionOptions = {
@@ -188,6 +189,16 @@ function CallScreen() {
   const [chatOpen, setChatOpen] = useState(false);
   const { navigate } = useLogoAnimation();
 
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const stream = useCameraBlurBackground(videoRef, canvasRef);
+
+  useEffect(() => {
+    if(stream){
+      localStreamDispatch({type: 'stream', value: {stream: stream}});
+    }
+  }, [stream]);
+
   const sendData = (data) => {
     socket.current.emit("data", {
       username: localUsername,
@@ -357,7 +368,6 @@ function CallScreen() {
       setSnackbarMessage(username + " left")
       setOpenSnackbar(true);
     });
-    streamLocal(localStreamDispatch);
     return function cleanup() {
       endConnection();
       window.removeEventListener('beforeunload', handleTabClosing);
@@ -432,6 +442,8 @@ function CallScreen() {
         }}>
           <Grid item xs={6}>
             <UserVideo stream={localStreamState.stream} username="you" muted/> 
+            <video className="input-video" ref={videoRef} style={{ display: 'none',}}></video>
+            <canvas className="output-canvas" style={{ display: 'none',}} ref={canvasRef}></canvas>
           </Grid>
           {renderVideos(remoteStreamsState.users)}
         </Grid>
