@@ -1,7 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import VideoItem from "../components/VideoItem";
-import { Button, ButtonGroup } from '@mui/material';
 import { CssBaseline, Box, Container, Grid } from '@mui/material';
 import { Typography } from '@mui/material';
 import { Snackbar, Alert } from '@mui/material';
@@ -11,6 +10,8 @@ import Chat from "../components/Chat";
 import Camera  from "../components/UserMediaInputs/Camera";
 import ScreenSharing from "../components/UserMediaInputs/ScreenSharing";
 import { useWebRTC } from "../hooks/useWebRTC";
+import ControlPanel from "../components/ControlPanel";
+import ParticipantsList from "../components/ParticipantsList";
 
 const host = "http://localhost:5000/";
 
@@ -25,6 +26,7 @@ function CallScreen() {
   } = useWebRTC(host, localUsername, roomName);
   const [chatOpen, setChatOpen] = useState(false);
   const [deskState, setDeskState] = useState(false);
+  const [sidebar, setSidebar] = useState(false);
   const { navigate } = useLogoAnimation();
 
   useEffect(() => {
@@ -61,6 +63,10 @@ function CallScreen() {
       <Grid key={item.id} item xs={6}>
         <VideoItem stream={item.stream}/>
       </Grid>);
+  };
+
+  const getParticipants = (connections) => {
+    return [localUsername, ...connections.map((item) => { return item.id })];
   };
 
   const handleDesk = () => {
@@ -100,7 +106,9 @@ function CallScreen() {
           {renderUserVideos(remoteStreamsState.users)}
         </Grid>
         <Container>
-          {deskState? <ScreenSharing setStream={setDeskStream}/> : <></>}
+          {deskState? <ScreenSharing 
+            setStream={setDeskStream} 
+            onCancel={() => setDeskState(false)}/> : null}
           {renderVideos(remoteStreamsState.desk)}
         </Container>
       </Container>
@@ -111,15 +119,12 @@ function CallScreen() {
         localUsername={localUsername}
         roomName={roomName}
       />
-      <ButtonGroup color="primary" variant="outlined" aria-label="outlined button group">
-      <Button onClick={handleVideo} 
-        sx={{"color": localStreamState.cam?"green":"red"}}>Video</Button>
-      <Button onClick={handleAudio} 
-        sx={{"color": localStreamState.mic?"green":"red"}}>Audio</Button>
-      <Button onClick={handleDesk} sx={{"color": deskState?"green":"red"}}>Stream</Button>
-      <Button color="primary" onClick={handleChatOpen}>Open Chat</Button>
-      <Button onClick={handleEndCall} sx={{"color": "red"}}>End</Button>
-      </ButtonGroup>
+      <ParticipantsList participants={getParticipants(remoteStreamsState.users)} isOpen={sidebar} onClose={()=>setSidebar(false)}/>
+      <ControlPanel cameraEnabled={localStreamState.cam} handleCamera={handleVideo} 
+        micEnabled={localStreamState.mic} handleMic={handleAudio} 
+        screenSharing={localStreamState.desk} handleScreenSharing={handleDesk}
+        handleChat={handleChatOpen} handleParticipants={()=>setSidebar(!sidebar)} 
+        handleEndCall={handleEndCall}/>
       </Box>
       <Snackbar
           open={showMessage}

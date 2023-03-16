@@ -3,7 +3,7 @@ import VideoItem from "../VideoItem";
 
 const deskVideoSize = { height: 720, width: 1280, };
 
-const streamDesk = (setStream) => {
+const streamDesk = (setStream, onCancel) => {
     navigator.mediaDevices
         .getDisplayMedia({
         frameRate: { 
@@ -18,14 +18,15 @@ const streamDesk = (setStream) => {
     })
     .catch((error) => {
         console.error("Stream not found: ", error);
+        onCancel();
     });
 }
 
-const ScreenSharing = ({setStream}) => {
+const ScreenSharing = ({setStream, onCancel}) => {
     const [deskStream, setDeskStream] = useState(null);
 
     useEffect(() => {
-        streamDesk(setDeskStream);
+        streamDesk(setDeskStream, onCancel);
     }, []);
 
     useEffect(() => {
@@ -36,7 +37,7 @@ const ScreenSharing = ({setStream}) => {
 
     return (
     <>
-        <VideoItem stream={deskStream} muted/> 
+        {deskStream ? <VideoItem stream={deskStream} muted/> : null} 
     </>
     );
 };

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useCameraBlurBackground } from "../../hooks/useCameraBlurBackground";
-import UserVideo from "../UserVideo";
+import UserVideo from "../UserVideo/UserVideo";
 
 const CameraBlurBackground = ({setStream}) => {
     const { videoRef, canvasRef, stream } = useCameraBlurBackground();
