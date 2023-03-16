@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogoAnimationContext } from '../components/LogoAnimationContext';
+import { LogoAnimationContext } from '../components/NavBar/LogoAnimationContext';
 
 export function useLogoAnimation() {
     const navigate = useNavigate();

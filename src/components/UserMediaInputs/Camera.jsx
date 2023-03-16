@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import UserVideo from "./UserVideo";
+import UserVideo from "../UserVideo/UserVideo";
 
 const userVideoSize = { height: 300, width: 300, };
 

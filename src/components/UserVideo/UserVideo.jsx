@@ -1,11 +1,11 @@
-import VideoItem from "./VideoItem";
+import VideoItem from "../VideoItem";
 import UserVideoPlaceholder from "./UserVideoPlaceholder";
 import { Paper } from '@mui/material';
 import { Skeleton } from '@mui/material';
 import { Chip } from '@mui/material';
 import Mic from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
-import { useSpeakingDetector } from "../hooks/useSpeakingDetector";
+import { useSpeakingDetector } from "../../hooks/useSpeakingDetector";
 
 function UserVideo(props) {
     const audioState = props.stream ? props.stream.getAudioTracks()[0].enabled : false;

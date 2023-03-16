@@ -15,7 +15,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
 import { LogoAnimationContext } from './LogoAnimationContext';
-import RoomConnectIcon from '../icons/RoomConnectIcon';
+import RoomConnectIcon from '../../icons/RoomConnectIcon';
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useLogoAnimation } from '../hooks/useLogoAnimation';
+import { useLogoAnimation } from '../../hooks/useLogoAnimation';
 
 function LinkWithLogoAnimation(props) {
     const { navigate } = useLogoAnimation();

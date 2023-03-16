@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import VideoItem from "./VideoItem";
+import VideoItem from "../VideoItem";
 
 const deskVideoSize = { height: 720, width: 1280, };
 

@@ -5,11 +5,11 @@ import { Button, ButtonGroup } from '@mui/material';
 import { CssBaseline, Box, Container, Grid } from '@mui/material';
 import { Typography } from '@mui/material';
 import { Snackbar, Alert } from '@mui/material';
-import UserVideo from '../components/UserVideo';
+import UserVideo from '../components/UserVideo/UserVideo';
 import { useLogoAnimation } from '../hooks/useLogoAnimation';
 import Chat from "../components/Chat";
-import Camera  from "../components/Camera";
-import ScreenSharing from "../components/ScreenSharing";
+import Camera  from "../components/UserMediaInputs/Camera";
+import ScreenSharing from "../components/UserMediaInputs/ScreenSharing";
 import { useWebRTC } from "../hooks/useWebRTC";
 
 const host = "http://localhost:5000/";

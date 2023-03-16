@@ -1,5 +1,5 @@
 import { useState } from "react";
-import LinkWithLogoAnimation from "../components/LinkWithLogoAnimation";
+import LinkWithLogoAnimation from "../components/NavBar/LinkWithLogoAnimation";
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';

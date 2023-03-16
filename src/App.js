@@ -1,8 +1,8 @@
 import { BrowserRouter as Router } from "react-router-dom";
 import RouteList from "./screens/RouteList";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import NavBar from "./components/NavBar";
-import { LogoAnimationProvider } from './components/LogoAnimationContext';
+import NavBar from "./components/NavBar/NavBar";
+import { LogoAnimationProvider } from './components/NavBar/LogoAnimationContext';
 
 const theme = createTheme({
     palette: {
