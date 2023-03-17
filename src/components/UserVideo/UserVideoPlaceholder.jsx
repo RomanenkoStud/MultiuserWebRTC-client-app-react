@@ -16,6 +16,7 @@ function UserVideoPlaceholder(props) {
             <Avatar sx={{ bgcolor: 'default', width: '50%', height: '50%'  }}>
                 <Typography sx={{ fontSize: 40 }}>{props.username}</Typography>
             </Avatar>
+            {props.children}
         </Box>
     );
 }

@@ -146,11 +146,11 @@ export const useWebRTC = (host, localUsername, roomName) => {
             sendOffer(sid);
         }
         } else {
-        for (let sid in pc.current) {
-            pc.current[sid].removeStream(localStreamState.desk);
-            sendOffer(sid);
-        }
-        localStreamDispatch({type: 'desk', value: {desk: false} })
+            localStreamDispatch({type: 'desk', value: {desk: false} })
+            for (let sid in pc.current) {
+                pc.current[sid].removeStream(localStreamState.desk);
+                sendOffer(sid);
+            }
         }
     }
 
@@ -323,31 +323,27 @@ export const useWebRTC = (host, localUsername, roomName) => {
 
     useEffect(() => {
         if(localStreamState.stream){
-        socket.current.on("ready", (username) => {
-            console.log("Ready to Connect!");
-            createPeerConnection(username);
-            sendOffer(username);
-            setMessage(username + " joined");
-            setShowMessage(true);
-        });
-        socket.current.on("data", (data, username) => {
-            signalingDataHandler(data, username);
-        });
-        socket.current.connect();
-        socket.current.emit("join", { username: localUsername, room: roomName });
-        }
-        
-        if(localStreamState.desk){
-        socket.current.off("ready");
-        socket.current.on("ready", (username) => {
-            console.log("Ready to Connect!");
-            createPeerConnection(username);
-            sendOffer(username);
-            setMessage(username + " joined");
-            setShowMessage(true);
-        });
+            socket.current.off("ready");
+            socket.current.on("ready", (username) => {
+                console.log("Ready to Connect!");
+                createPeerConnection(username);
+                sendOffer(username);
+                setMessage(username + " joined");
+                setShowMessage(true);
+            });
+            socket.current.off("data");
+            socket.current.on("data", (data, username) => {
+                signalingDataHandler(data, username);
+            });
         }
     }, [localStreamState.stream, localStreamState.desk]);
+
+    useEffect(() => {
+        if(localStreamState.stream && !socket.current.connected){
+            socket.current.connect();
+            socket.current.emit("join", { username: localUsername, room: roomName });
+        }
+    }, [localStreamState.stream]);
 
     return {
         socket,

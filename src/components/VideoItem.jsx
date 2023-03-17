@@ -6,18 +6,25 @@ const videoStyle = {
   objectFit: 'cover',
 };
 
-function VideoItem(props) {
+function VideoItem({stream, muted, hidden}) {
   const remoteVideoRef = useRef(null);
 
   useEffect(() => {
-    if(props.stream !== null) {
-      remoteVideoRef.current.srcObject = props.stream;
+    if(stream !== null) {
+      remoteVideoRef.current.srcObject = stream;
     }
-  }, [props.stream]);
+  }, [stream]);
 
-  return (
-    <video style={videoStyle} muted={props.muted} autoPlay playsInline ref={remoteVideoRef} />
-  );
+  if (hidden) {
+    return (
+      <video style={{display: "none"}} muted={muted} autoPlay playsInline ref={remoteVideoRef} />
+    );
+  }
+  else {
+    return (
+      <video style={videoStyle} muted={muted} autoPlay playsInline ref={remoteVideoRef} />
+    );
+  }
 }
 
 export default VideoItem;

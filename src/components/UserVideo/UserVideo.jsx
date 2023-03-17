@@ -24,7 +24,9 @@ function UserVideo(props) {
             {props.stream ? 
                 (videoState ? 
                     <VideoItem stream={props.stream} muted={props.muted}/> : 
-                    <UserVideoPlaceholder username={props.username}/>
+                    <UserVideoPlaceholder username={props.username}>
+                        <VideoItem stream={props.stream} muted={props.muted} hidden/>
+                    </UserVideoPlaceholder>
                 ) : 
                     <Skeleton variant="rectangular" 
                             sx={{
