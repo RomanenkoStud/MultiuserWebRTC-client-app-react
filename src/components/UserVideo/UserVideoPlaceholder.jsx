@@ -8,6 +8,9 @@ function UserVideoPlaceholder(props) {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
+                transform: "translateZ(0)", 
+                    // force whole pixel rendering
+                    // prevent sub-pixel rendering
                 bgcolor: (theme) => theme.palette.primary.dark,
                 display: 'flex',
                 justifyContent: 'center',

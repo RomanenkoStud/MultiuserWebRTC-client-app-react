@@ -14,17 +14,13 @@ function VideoItem({stream, muted, hidden}) {
       remoteVideoRef.current.srcObject = stream;
     }
   }, [stream]);
-
-  if (hidden) {
-    return (
-      <video style={{display: "none"}} muted={muted} autoPlay playsInline ref={remoteVideoRef} />
-    );
-  }
-  else {
-    return (
-      <video style={videoStyle} muted={muted} autoPlay playsInline ref={remoteVideoRef} />
-    );
-  }
+  return (
+    <video 
+      style={hidden ? {display: "none"} : videoStyle} 
+      muted={muted} 
+      autoPlay playsInline ref={remoteVideoRef} 
+    />
+  );
 }
 
 export default VideoItem;
