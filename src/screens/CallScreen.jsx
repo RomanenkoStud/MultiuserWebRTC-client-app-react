@@ -72,6 +72,11 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk}) {
     {/* Main */}
     <Grid item sm={8}>
       <Carousel 
+        navButtonsWrapperProps={{ 
+          style: {
+              top: '40px'
+          }
+        }} 
         autoPlay={false}
         indicatorContainerProps={{ style: { display: 'none' } }}
       >

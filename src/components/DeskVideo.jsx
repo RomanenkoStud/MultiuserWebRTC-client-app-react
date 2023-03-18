@@ -12,7 +12,7 @@ function DeskVideo(props) {
             }}
         >
             {props.stream ? 
-                <VideoItem stream={props.stream} muted={props.muted}/> : 
+                <VideoItem stream={props.stream} muted={props.muted} fullScreen/> : 
                 <Skeleton variant="rectangular" 
                         sx={{
                         width: '100%',
@@ -21,9 +21,11 @@ function DeskVideo(props) {
                         }} 
                 />
             }
-            <Chip color="default" 
+            <Chip
             label={"Streaming: " + props.username}
             sx={{
+                color: 'gray',
+                lineHeight: 10,
                 position: 'absolute',
                 bottom: 0,
                 right: 0,
