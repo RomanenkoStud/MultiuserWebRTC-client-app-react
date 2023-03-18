@@ -21,15 +21,19 @@ const streamLocal = (setStream) => {
         });
 };
 
-const Camera = ({setStream}) => {
+const Camera = ({stream, setStream}) => {
     const [cameraStream, setCameraStream] = useState(null);
 
     useEffect(() => {
-        streamLocal(setCameraStream);
+        if(stream) {
+            setCameraStream(stream);
+        } else {
+            streamLocal(setCameraStream);
+        }
     }, []);
 
     useEffect(() => {
-        if(cameraStream){
+        if(cameraStream && !stream){
             setStream(cameraStream);
         }
     }, [cameraStream]);

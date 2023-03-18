@@ -178,7 +178,7 @@ function CallScreen() {
       <Container maxWidth='xl'>
         {deskState||remoteStreamsState.desk[0] ?
         (<VideosLayoutWithDesk 
-          userCamera={<Camera setStream={setCameraStream}/>} 
+          userCamera={<Camera stream={localStreamState.stream} setStream={setCameraStream}/>} 
           userDesk={deskState? <ScreenSharing 
             setStream={setDeskStream} 
             onCancel={() => setDeskState(false)}/> : false} 
@@ -186,7 +186,7 @@ function CallScreen() {
             desk={remoteStreamsState.desk[0] ? remoteStreamsState.desk : false}
         />) :
         (<VideosLayout 
-          userCamera={<Camera setStream={setCameraStream}/>} 
+          userCamera={<Camera stream={localStreamState.stream} setStream={setCameraStream}/>} 
           users={remoteStreamsState.users}
         />)
         }
