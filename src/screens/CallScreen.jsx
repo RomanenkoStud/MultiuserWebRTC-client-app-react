@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import VideoItem from "../components/VideoItem";
+import DeskVideo from "../components/DeskVideo";
 import { CssBaseline, Box, Container, Grid } from '@mui/material';
 import { Typography } from '@mui/material';
 import { Snackbar, Alert } from '@mui/material';
@@ -12,8 +12,99 @@ import ScreenSharing from "../components/UserMediaInputs/ScreenSharing";
 import { useWebRTC } from "../hooks/useWebRTC";
 import ControlPanel from "../components/ControlPanel";
 import ParticipantsList from "../components/ParticipantsList";
+import Carousel from 'react-material-ui-carousel';
 
 const host = "http://localhost:5000/";
+
+const userVideo = (user) => {
+  return (<UserVideo stream={user.stream} username={user.id}/>);
+};
+
+const deskVideos = (deskArray) => {
+  return deskArray.map((desk) => (
+    <DeskVideo key={desk.id} stream={desk.stream} username={desk.id}/>
+  ))
+}
+
+function VideosLayout({userCamera, users}) {
+  return(
+  <Grid container spacing={1} justifyContent="center">
+    {/* Main */}
+    <Grid item sm={4}>
+      {userCamera}
+    </Grid>
+    {users[0] ? 
+    (<Grid item sm={4}>
+      {userVideo(users[0])}
+    </Grid>) : null}
+    {/* Side videos */}
+    {users[1] ?
+    (<Grid item sm={2}>
+      <Grid container spacing={1}>
+        {users[1] ?
+        (<Grid item sm={12}>
+          {userVideo(users[1])}
+        </Grid>) : null}
+        {users[2] ?
+        (<Grid item sm={12}>
+          {userVideo(users[2])}
+        </Grid>) : null}
+      </Grid>
+    </Grid>): null}
+  </Grid>);
+}
+
+function VideosLayoutWithDesk({userCamera, userDesk, users, desk}) {
+  const allDesk = (local, remoteArray) => {
+    if (local && remoteArray[0]) {
+      return [local, ...deskVideos(remoteArray)];
+    } else if (local) {
+      return [local];
+    } else if (remoteArray[0]) {
+      return deskVideos(remoteArray);
+    } else {
+      return null;
+    }
+  }
+
+  return(
+  <Grid container spacing={1} justifyContent="center">
+    {/* Main */}
+    <Grid item sm={8}>
+      <Carousel 
+        autoPlay={false}
+        indicatorContainerProps={{ style: { display: 'none' } }}
+      >
+        {allDesk(userDesk, desk)}
+      </Carousel>
+    </Grid>
+    {/* Side videos */}
+    <Grid item sm={2}>
+      <Grid container spacing={1}>
+        <Grid item sm={12}>
+          {userCamera}
+        </Grid>
+        {users[0] ?
+        (<Grid item sm={12}>
+          {userVideo(users[0])}
+        </Grid>) : null}
+      </Grid>
+    </Grid>
+    {users[1] ?
+    (<Grid item sm={2}>
+      <Grid container spacing={1}>
+        {users[1] ?
+        (<Grid item sm={12}>
+          {userVideo(users[1])}
+        </Grid>) : null}
+        {users[2] ?
+        (<Grid item sm={12}>
+          {userVideo(users[2])}
+        </Grid>) : null}
+      </Grid>
+    </Grid>): null}
+  </Grid>);
+}
 
 function CallScreen() {
   const params = useParams();
@@ -50,20 +141,6 @@ function CallScreen() {
   const handleChatClose = () => {
     setChatOpen(false);
   };
-  
-  const renderUserVideos = (videos) => {
-    return videos.map(item => 
-      <Grid key={item.id} item xs={6}>
-        <UserVideo stream={item.stream} username={item.id}/>
-      </Grid>);
-  };
-
-  const renderVideos = (videos) => {
-    return videos.map(item => 
-      <Grid key={item.id} item xs={6}>
-        <VideoItem stream={item.stream}/>
-      </Grid>);
-  };
 
   const getParticipants = (connections) => {
     return [localUsername, ...connections.map((item) => { return item.id })];
@@ -83,7 +160,7 @@ function CallScreen() {
   }
 
   return (
-    <Container component="main">
+    <Container component="main" maxWidth='xl'>
       <CssBaseline />
       <Box
                 sx={{
@@ -93,24 +170,21 @@ function CallScreen() {
                 alignItems: 'center',
                 }}
       >
-      <Typography>{"Username: " + localUsername}</Typography>
-      <Typography>{"Room Id: " + roomName}</Typography>
-      <Container maxWidth='md' margin="normal">
-        <Grid container spacing={2} justifyContent="center" 
-        sx={{
-              marginBottom: 2
-        }}>
-          <Grid item xs={6}>
-            <Camera setStream={setCameraStream}/> 
-          </Grid>
-          {renderUserVideos(remoteStreamsState.users)}
-        </Grid>
-        <Container>
-          {deskState? <ScreenSharing 
+      <Container maxWidth='xl'>
+        {deskState||remoteStreamsState.desk[0] ?
+        (<VideosLayoutWithDesk 
+          userCamera={<Camera setStream={setCameraStream}/>} 
+          userDesk={deskState? <ScreenSharing 
             setStream={setDeskStream} 
-            onCancel={() => setDeskState(false)}/> : null}
-          {renderVideos(remoteStreamsState.desk)}
-        </Container>
+            onCancel={() => setDeskState(false)}/> : false} 
+            users={remoteStreamsState.users} 
+            desk={remoteStreamsState.desk[0] ? remoteStreamsState.desk : false}
+        />) :
+        (<VideosLayout 
+          userCamera={<Camera setStream={setCameraStream}/>} 
+          users={remoteStreamsState.users}
+        />)
+        }
       </Container>
       <Chat 
         isOpen={chatOpen} 

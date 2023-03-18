@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import VideoItem from "../VideoItem";
+import DeskVideo from "../DeskVideo";
 
 const deskVideoSize = { height: 720, width: 1280, };
 
@@ -37,7 +37,7 @@ const ScreenSharing = ({setStream, onCancel}) => {
 
     return (
     <>
-        {deskStream ? <VideoItem stream={deskStream} muted/> : null} 
+        {deskStream ? <DeskVideo stream={deskStream} username="you" muted/> : null} 
     </>
     );
 };

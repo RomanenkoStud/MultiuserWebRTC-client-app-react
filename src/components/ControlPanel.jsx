@@ -24,7 +24,16 @@ const ControlPanel = ({
     
 
     return (
-            <ButtonGroup>
+            <ButtonGroup sx={{
+                position: 'fixed',
+                bottom: 15,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                bgcolor: (theme) => theme.palette.primary.light,
+                borderRadius: 15,
+                px: 5,
+                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)',
+            }}>
             <Tooltip title={cameraEnabled ? 'Disable Camera' : 'Enable Camera'}>
                 <IconButton onClick={handleCamera}>
                 {cameraEnabled ? <Videocam /> : <VideocamOff />}
