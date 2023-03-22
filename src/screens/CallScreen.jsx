@@ -14,7 +14,7 @@ import ControlPanel from "../components/ControlPanel";
 import ParticipantsList from "../components/ParticipantsList";
 import Carousel from 'react-material-ui-carousel';
 
-const host = "http://localhost:5000/";
+const host = "https://azure-flask-socketio.azurewebsites.net/";
 
 const userVideo = (user) => {
   return (<UserVideo stream={user.stream} username={user.id}/>);
