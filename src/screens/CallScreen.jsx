@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import DeskVideo from "../components/DeskVideo";
 import { CssBaseline, Box, Container, Grid } from '@mui/material';
 import { Typography } from '@mui/material';
+import { useMediaQuery } from '@mui/material';
 import { Snackbar, Alert } from '@mui/material';
 import UserVideo from '../components/UserVideo/UserVideo';
 import { useLogoAnimation } from '../hooks/useLogoAnimation';
@@ -27,26 +28,27 @@ const deskVideos = (deskArray) => {
 }
 
 function VideosLayout({userCamera, users}) {
+  const matchesSM = useMediaQuery(theme => theme.breakpoints.down('sm'));
   return(
-  <Grid container spacing={1} justifyContent="center">
+  <Grid container spacing={1} justifyContent={matchesSM ? "start" : "center"}>
     {/* Main */}
-    <Grid item sm={4}>
+    <Grid item xs={12} sm={6} md={4}>
       {userCamera}
     </Grid>
     {users[0] ? 
-    (<Grid item sm={4}>
+    (<Grid item xs={4} sm={6} md={4}>
       {userVideo(users[0])}
     </Grid>) : null}
     {/* Side videos */}
     {users[1] ?
-    (<Grid item sm={2}>
+    (<Grid item xs={8} sm={12} md={2}>
       <Grid container spacing={1}>
         {users[1] ?
-        (<Grid item sm={12}>
+        (<Grid item xs={6} sm={3} md={12}>
           {userVideo(users[1])}
         </Grid>) : null}
         {users[2] ?
-        (<Grid item sm={12}>
+        (<Grid item xs={6} sm={3} md={12}>
           {userVideo(users[2])}
         </Grid>) : null}
       </Grid>
@@ -70,7 +72,7 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk}) {
   return(
   <Grid container spacing={1} justifyContent="center">
     {/* Main */}
-    <Grid item sm={8}>
+    <Grid item xs={12} sm={12} md={8}>
       <Carousel 
         navButtonsWrapperProps={{ 
           style: {
@@ -84,26 +86,26 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk}) {
       </Carousel>
     </Grid>
     {/* Side videos */}
-    <Grid item sm={2}>
+    <Grid item xs={12} sm={6} md={2}>
       <Grid container spacing={1}>
-        <Grid item sm={12}>
+        <Grid item xs={6} sm={6} md={12}>
           {userCamera}
         </Grid>
         {users[0] ?
-        (<Grid item sm={12}>
+        (<Grid item xs={6} sm={6} md={12}>
           {userVideo(users[0])}
         </Grid>) : null}
       </Grid>
     </Grid>
     {users[1] ?
-    (<Grid item sm={2}>
+    (<Grid item xs={12} sm={6} md={2}>
       <Grid container spacing={1}>
         {users[1] ?
-        (<Grid item sm={12}>
+        (<Grid item xs={6} sm={6} md={12}>
           {userVideo(users[1])}
         </Grid>) : null}
         {users[2] ?
-        (<Grid item sm={12}>
+        (<Grid item xs={6} sm={6} md={12}>
           {userVideo(users[2])}
         </Grid>) : null}
       </Grid>
@@ -169,7 +171,7 @@ function CallScreen() {
       <CssBaseline />
       <Box
                 sx={{
-                marginTop: 8,
+                marginTop: "5%",
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
