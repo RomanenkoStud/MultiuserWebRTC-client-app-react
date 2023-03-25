@@ -27,13 +27,13 @@ const ScreenSharing = ({setStream, onCancel}) => {
 
     useEffect(() => {
         streamDesk(setDeskStream, onCancel);
-    }, []);
+    }, [onCancel]);
 
     useEffect(() => {
         if(deskStream){
             setStream(deskStream);
         }
-    }, [deskStream]);
+    }, [deskStream, setStream]);
 
     return (
     <>

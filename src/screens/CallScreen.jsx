@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import DeskVideo from "../components/DeskVideo";
 import { CssBaseline, Box, Container, Grid } from '@mui/material';
-import { Typography } from '@mui/material';
+//import { Typography } from '@mui/material';
 import { useMediaQuery } from '@mui/material';
 import { Snackbar, Alert } from '@mui/material';
 import UserVideo from '../components/UserVideo/UserVideo';
@@ -15,7 +15,7 @@ import ControlPanel from "../components/ControlPanel";
 import ParticipantsList from "../components/ParticipantsList";
 import Carousel from 'react-material-ui-carousel';
 
-const host = "https://azure-flask-socketio.azurewebsites.net/";
+const host = "http://azure-flask-socketio.azurewebsites.net/";
 
 const userVideo = (user) => {
   return (<UserVideo stream={user.stream} username={user.id}/>);
@@ -129,9 +129,9 @@ function CallScreen() {
 
   useEffect(() => {
     if(!deskState && localStreamState.desk){
-      setDeskStream(false);
+      setDeskStream.current(false);
     }
-  }, [deskState]);
+  }, [deskState, localStreamState.desk, setDeskStream]);
 
   const handleSnackbarClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -162,7 +162,7 @@ function CallScreen() {
   } 
 
   const handleEndCall = () => {
-    endConnection();
+    endConnection.current();
     navigate("/");
   }
 

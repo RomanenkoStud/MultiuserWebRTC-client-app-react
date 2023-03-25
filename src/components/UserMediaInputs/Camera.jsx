@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import UserVideo from "../UserVideo/UserVideo";
 
 const userVideoSize = { height: 300, width: 300, };
@@ -23,20 +23,23 @@ const streamLocal = (setStream) => {
 
 const Camera = ({stream, setStream}) => {
     const [cameraStream, setCameraStream] = useState(null);
-
+    const enabled = useRef(false);
     useEffect(() => {
         if(stream) {
             setCameraStream(stream);
         } else {
-            streamLocal(setCameraStream);
+            if(!enabled.current) {
+                streamLocal(setCameraStream);
+                enabled.current = true;
+            }
         }
-    }, []);
+    }, [stream]);
 
     useEffect(() => {
         if(cameraStream && !stream){
             setStream(cameraStream);
         }
-    }, [cameraStream]);
+    }, [cameraStream, stream, setStream]);
 
     return (
     <>
