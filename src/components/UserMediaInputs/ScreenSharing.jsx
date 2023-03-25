@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DeskVideo from "../DeskVideo";
 
 const deskVideoSize = { height: 720, width: 1280, };
@@ -24,9 +24,13 @@ const streamDesk = (setStream, onCancel) => {
 
 const ScreenSharing = ({setStream, onCancel}) => {
     const [deskStream, setDeskStream] = useState(null);
+    const enabled = useRef(false);
 
     useEffect(() => {
-        streamDesk(setDeskStream, onCancel);
+        if(!enabled.current){
+            streamDesk(setDeskStream, onCancel);
+            enabled.current = true;
+        }
     }, [onCancel]);
 
     useEffect(() => {

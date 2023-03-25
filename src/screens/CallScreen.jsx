@@ -182,7 +182,7 @@ function CallScreen() {
         (<VideosLayoutWithDesk 
           userCamera={<Camera stream={localStreamState.stream} setStream={setCameraStream}/>} 
           userDesk={deskState? <ScreenSharing 
-            setStream={setDeskStream} 
+            setStream={setDeskStream.current} 
             onCancel={() => setDeskState(false)}/> : false} 
             users={remoteStreamsState.users} 
             desk={remoteStreamsState.desk[0] ? remoteStreamsState.desk : false}
