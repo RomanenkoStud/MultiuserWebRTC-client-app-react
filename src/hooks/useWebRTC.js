@@ -136,10 +136,7 @@ export const useWebRTC = (host, localUsername, roomName) => {
 
     const endConnection = useRef();
     const setDeskStream = useRef();
-
-    const setCameraStream = (stream) => {
-        localStreamDispatch({type: 'stream', value: {stream: stream}});
-    }
+    const setCameraStream = useRef();
 
     const handleVideo = () => localStreamDispatch(
         {type: 'video', value: {dataChannel: dataChannel.current} }
@@ -324,6 +321,10 @@ export const useWebRTC = (host, localUsername, roomName) => {
             }
         }
 
+        setCameraStream.current = (stream) => {
+            localStreamDispatch({type: 'stream', value: {stream: stream}});
+        }
+    
         if(localStreamState.stream){
             socket.current.off("ready");
             socket.current.on("ready", (username) => {
