@@ -13,15 +13,18 @@ import {
     StopScreenShare,
     People,
     CallEnd,
+    Share,
 } from '@mui/icons-material';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
+import { useState } from "react";
 
 const ControlPanel = ({
     cameraEnabled, handleCamera, 
     micEnabled, handleMic, 
     screenSharing, handleScreenSharing,
     handleChat, handleParticipants,
-    handleEndCall,}) => {
-    
+    handleEndCall, invite}) => {
+    const [isCopied, setIsCopied] = useState(false);
 
     return (
             <ButtonGroup sx={{
@@ -64,6 +67,13 @@ const ControlPanel = ({
                 <CallEnd />
                 </IconButton>
             </Tooltip>
+            <CopyToClipboard text={invite} onCopy={() => setIsCopied(true)}>
+                <Tooltip title={isCopied ? 'Copied!' : 'Copy to clipboard'}>
+                    <IconButton>
+                        <Share />
+                    </IconButton>
+                </Tooltip>
+            </CopyToClipboard>
             </ButtonGroup>
     );
 };

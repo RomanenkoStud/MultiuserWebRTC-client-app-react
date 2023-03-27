@@ -205,7 +205,7 @@ function CallScreen() {
         micEnabled={localStreamState.mic} handleMic={handleAudio} 
         screenSharing={localStreamState.desk} handleScreenSharing={handleDesk}
         handleChat={handleChatOpen} handleParticipants={()=>setSidebar(!sidebar)} 
-        handleEndCall={handleEndCall}/>
+        handleEndCall={handleEndCall} invite={`${window.location.origin}/invite/${roomName}`} />
       </Box>
       <Snackbar
           open={showMessage}
