@@ -1,67 +1,23 @@
 import { useState, useEffect, useContext } from 'react';
-//import { styled, alpha } from '@mui/material/styles';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-//import InputBase from '@mui/material/InputBase';
-import Badge from '@mui/material/Badge';
-import MenuItem from '@mui/material/MenuItem';
-import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
-//import SearchIcon from '@mui/icons-material/Search';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import MailIcon from '@mui/icons-material/Mail';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import MoreIcon from '@mui/icons-material/MoreVert';
-import { LogoAnimationContext } from './LogoAnimationContext';
+import {AppBar, Box, Toolbar, IconButton} from '@mui/material';
+import {Menu, MenuItem} from '@mui/material';
+import {Drawer, Divider} from '@mui/material';
+import {List, ListItem, ListItemIcon, ListItemText, ListItemButton} from '@mui/material';
 import RoomConnectIcon from '../../icons/RoomConnectIcon';
+import MenuIcon from '@mui/icons-material/Menu';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import LoginIcon from '@mui/icons-material/Login';
+import MoreIcon from '@mui/icons-material/MoreVert';
+import HomeIcon from '@mui/icons-material/Home';
+import { LogoAnimationContext } from './LogoAnimationContext';
+import { useLogoAnimation } from '../../hooks/useLogoAnimation';
 
-/*const Search = styled('div')(({ theme }) => ({
-    position: 'relative',
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: alpha(theme.palette.common.white, 0.15),
-    '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
-    },
-    marginRight: theme.spacing(2),
-    marginLeft: 0,
-    width: '100%',
-    [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(3),
-    width: 'auto',
-    },
-}));
-
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-    padding: theme.spacing(0, 2),
-    height: '100%',
-    position: 'absolute',
-    pointerEvents: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-    color: 'inherit',
-    '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('md')]: {
-        width: '20ch',
-    },
-    },
-}));*/
-
-export default function NavBar() {
+export default function NavBar({currentUser, logOut}) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
     const { logoAnimationState, setLogoAnimationState } = useContext(LogoAnimationContext);
-
+    const { navigate } = useLogoAnimation();
+    const [isDrawerOpen, setDrawerOpen] = useState(false);
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
@@ -90,6 +46,46 @@ export default function NavBar() {
         setMobileMoreAnchorEl(event.currentTarget);
     };
 
+    const toggleDrawer = (open) => (event) => {
+        if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+            return;
+        }
+    
+        setDrawerOpen(open);
+    };
+
+    const drawerItem = (text, icon, page) => (
+        <ListItem key={text} disablePadding onClick={() => {navigate(page)}}>
+            <ListItemButton>
+                <ListItemIcon>
+                {icon}
+                </ListItemIcon>
+                <ListItemText primary={text} />
+            </ListItemButton>
+            </ListItem>
+    );
+
+    const renderDrawerItems = (
+        <Box
+        sx={{ width: 250 }}
+        role="presentation"
+        onClick={toggleDrawer(false)}
+        onKeyDown={toggleDrawer(false)}
+        >
+        <List>
+            {drawerItem("Home", <HomeIcon/>, "/")}
+            {drawerItem("Profile", <AccountCircle/>, "/")}
+            {drawerItem("Profile", <AccountCircle/>, "/")}
+        </List>
+        <Divider />
+        <List>
+            {drawerItem("Home", <HomeIcon/>, "/")}
+            {drawerItem("Profile", <AccountCircle/>, "/")}
+            {drawerItem("Profile", <AccountCircle/>, "/")}
+        </List>
+    </Box>
+    );
+
     const menuId = 'primary-search-account-menu';
     const renderMenu = (
         <Menu
@@ -107,8 +103,19 @@ export default function NavBar() {
         open={isMenuOpen}
         onClose={handleMenuClose}
         >
-        <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Exit</MenuItem>
+        {currentUser && <MenuItem onClick={handleMenuClose}>Profile</MenuItem>}
+        {currentUser && 
+        <MenuItem onClick={() => {
+                handleMenuClose();
+                logOut();}}> 
+            LogOut
+        </MenuItem>}
+        {!currentUser &&
+        <MenuItem onClick={() => {
+            handleMenuClose();
+            navigate("/login/");}}>
+            Login
+        </MenuItem>}
         </Menu>
     );
 
@@ -129,26 +136,6 @@ export default function NavBar() {
         open={isMobileMenuOpen}
         onClose={handleMobileMenuClose}
         >
-        <MenuItem>
-            <IconButton size="large" aria-label="show 4 new mails" color="inherit">
-            <Badge badgeContent={4} color="error">
-                <MailIcon />
-            </Badge>
-            </IconButton>
-            <p>Messages</p>
-        </MenuItem>
-        <MenuItem>
-            <IconButton
-            size="large"
-            aria-label="show 17 new notifications"
-            color="inherit"
-            >
-            <Badge badgeContent={17} color="error">
-                <NotificationsIcon />
-            </Badge>
-            </IconButton>
-            <p>Notifications</p>
-        </MenuItem>
         <MenuItem onClick={handleProfileMenuOpen}>
             <IconButton
             size="large"
@@ -173,52 +160,45 @@ export default function NavBar() {
                 edge="start"
                 color="inherit"
                 aria-label="open drawer"
+                onClick={()=>setDrawerOpen(true)}
                 sx={{mr: 2}}
             >
                 <MenuIcon />
             </IconButton>
+            <Drawer
+            anchor={'left'}
+            open={isDrawerOpen}
+            onClose={toggleDrawer(false)}
+            >
+                {renderDrawerItems}
+            </Drawer>
             <RoomConnectIcon 
                 animation={logoAnimationState} 
                 style={{ width: '150px', height: '50px' }} 
             />
-            {/*<Search>
-                <SearchIconWrapper>
-                <SearchIcon />
-                </SearchIconWrapper>
-                <StyledInputBase
-                placeholder="Search…"
-                inputProps={{ 'aria-label': 'search' }}
-                />
-            </Search>*/}
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-                <IconButton size="large" aria-label="show 4 new mails" color="inherit">
-                    <MailIcon />
-                {/*<Badge badgeContent={4} color="error">
-                    <MailIcon />
-                </Badge>*/}
-                </IconButton>
-                <IconButton
-                size="large"
-                aria-label="show 17 new notifications"
-                color="inherit"
-                >
-                    <NotificationsIcon />
-                {/*<Badge badgeContent={17} color="error">
-                    <NotificationsIcon />
-                </Badge>*/}
-                </IconButton>
-                <IconButton
-                size="large"
-                edge="end"
-                aria-label="account of current user"
-                aria-controls={menuId}
-                aria-haspopup="true"
-                onClick={handleProfileMenuOpen}
-                color="inherit"
-                >
-                <AccountCircle />
-                </IconButton>
+                {currentUser ? (
+                    <IconButton
+                    size="large"
+                    edge="end"
+                    aria-label="account of current user"
+                    aria-controls={menuId}
+                    aria-haspopup="true"
+                    onClick={handleProfileMenuOpen}
+                    color="inherit"
+                    >
+                        <AccountCircle />
+                    </IconButton> 
+                ) : (
+                    <IconButton
+                    size="large"
+                    color="inherit"
+                    onClick={() => {navigate("/login/")}}
+                    >
+                        <LoginIcon />
+                    </IconButton>
+                )}
             </Box>
             <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
                 <IconButton
