@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import UserVideo from "../UserVideo/UserVideo";
 
-const userVideoSize = { height: 300, width: 300, };
-
-const audioMuted = () => {
+const streamLocal = (setStream) => {
+    // Create dummy audio track
     const audioContext = new AudioContext();
     const oscillator = audioContext.createOscillator();
     oscillator.type = 'triangle';
@@ -16,10 +15,7 @@ const audioMuted = () => {
     oscillator.start();
     const audioTrack = dest.stream.getAudioTracks()[0];
     audioTrack.enabled = false;
-    return audioTrack;
-}
 
-const videoMuted = () => {
     const canvas = document.createElement('canvas');
     canvas.width = 300;
     canvas.height = 300;
@@ -29,52 +25,29 @@ const videoMuted = () => {
     const videoStream = canvas.captureStream();
     const videoTrack = videoStream.getVideoTracks()[0];
     videoTrack.enabled = false;
-    return videoTrack;
-}
 
-const streamLocal = (setStream, useMic, useCam) => {
-    navigator.mediaDevices
-        .getUserMedia({
-            audio: useMic,
-            video: useCam ? userVideoSize : false,
-        })
-        .then((stream) => {
-            console.log("Local Stream found", useCam, useMic);
-            !useMic && stream.addTrack(audioMuted());
-            !useCam && stream.addTrack(videoMuted());
-            setStream(stream);
-        })
-        .catch((error) => {
-            console.error("Stream not found: ", error);
-        });
+    const dummyStream = new MediaStream();
+    dummyStream.addTrack(audioTrack);
+    dummyStream.addTrack(videoTrack);
+    
+    setStream(dummyStream);
 };
 
-const Camera = ({stream, setStream, useMic, useCam}) => {
+const CameraOff = ({stream, setStream}) => {
     const [cameraStream, setCameraStream] = useState(null);
-    const [mic, setMic] = useState(useMic);
-    const [cam, setCam] = useState(useCam);
     const enabled = useRef(false);
-
     useEffect(() => {
             if(!enabled.current) {
-                streamLocal(setCameraStream, mic, cam);
+                streamLocal(setCameraStream);
                 enabled.current = true;
             }
-    }, [stream, mic, cam]);
-
-    useEffect(() => {
-        if(enabled.current && (useMic !== mic || useCam !== cam)) {
-            streamLocal(setCameraStream, useMic, useCam);
-            setMic(useMic);
-            setCam(useCam);
-        }
-}, [stream, mic, cam, useMic, useCam]);
+    }, [stream]);
 
     useEffect(() => {
         if(cameraStream && stream !== cameraStream){
             setStream(cameraStream);
         }
-    }, [cameraStream, setStream, stream]);
+    }, [cameraStream, stream, setStream]);
 
     return (
     <>
@@ -83,4 +56,4 @@ const Camera = ({stream, setStream, useMic, useCam}) => {
     );
 };
 
-export default Camera;
+export default CameraOff;

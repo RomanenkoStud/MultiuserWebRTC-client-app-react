@@ -27,6 +27,22 @@ const STUN_SERVERS = {
     ],
 };
 
+const replaceTracks = (oldAudioTrack, oldVideoTrack, newAudioTrack, newVideoTrack, pc, sendOffer) => {
+    for (let sid in pc) {
+        pc[sid].getSenders().forEach(sender => {
+            if (sender.track === oldAudioTrack) {
+                sender.replaceTrack(newAudioTrack);
+            }
+            if (sender.track === oldVideoTrack) {
+                sender.replaceTrack(newVideoTrack);
+            }
+        });
+        sendOffer(sid);
+    }
+    oldAudioTrack.stop();
+    oldVideoTrack.stop();
+}
+
 const muteAudio = (dataChannel, localStream, audioState) => {
 const audioTrack = localStream.getAudioTracks()[0];
 audioTrack.enabled = !audioState;
@@ -58,17 +74,19 @@ for (const id in dataChannel) {
 }
 
 const endStream = (stream) => {
-stream.getTracks().forEach(function(track) {
-    track.stop();
-});
+    stream.getTracks().forEach(function(track) {
+        track.stop();
+    });
 }
 
 const localStreamReducer = (state, action) => {
     switch (action.type) {
         case 'stream':
-        const audioState = action.value.stream ? action.value.stream.getAudioTracks()[0].enabled : false;
-        const videoState = action.value.stream ? action.value.stream.getVideoTracks()[0].enabled : false;
-        return {stream: action.value.stream, desk: state.desk, mic: audioState, cam: videoState};
+        const audioTrack = action.value.stream.getAudioTracks()[0];
+        audioTrack.enabled = state.mic;
+        const videoTrack = action.value.stream.getVideoTracks()[0];
+        videoTrack.enabled = state.cam;
+        return {stream: action.value.stream, desk: state.desk, mic: state.mic, cam: state.cam};
         case 'desk':
         if(!action.value.desk) {
             endStream(state.desk);
@@ -81,7 +99,7 @@ const localStreamReducer = (state, action) => {
         muteVideo(action.value.dataChannel, state.stream, state.cam);
         return {stream: state.stream, desk: state.desk, mic: state.mic, cam: !state.cam};
         case 'end':
-        return {stream: false, desk: false, mic: true, cam: true};
+        return {stream: false, desk: false, mic: false, cam: false};
         default:
         throw new Error();
     }
@@ -123,12 +141,12 @@ const remoteStreamsReducer = (state, action) => {
     }
 }
 
-export const useWebRTC = (host, localUsername, roomName) => {
+export const useWebRTC = (host, localUsername, roomName, useMic, useCam) => {
     const socket = useRef(null);
     const pc = useRef({}); // For RTCPeerConnection Objects
     const dataChannel = useRef({}); 
     const [localStreamState, localStreamDispatch] = useReducer(localStreamReducer, 
-        {stream: false, desk: false, mic: true, cam: true});
+        {stream: false, desk: false, mic: useMic, cam: useCam});
     const [remoteStreamsState, remoteStreamsDispatch] = useReducer(remoteStreamsReducer,
         {users: [], desk: []});
     const [showMessage, setShowMessage] = useState(false);
@@ -137,6 +155,9 @@ export const useWebRTC = (host, localUsername, roomName) => {
     const endConnection = useRef();
     const setDeskStream = useRef();
     const setCameraStream = useRef();
+
+    const oldAudioTrack = useRef();
+    const oldVideoTrack = useRef();
 
     const handleVideo = () => localStreamDispatch(
         {type: 'video', value: {dataChannel: dataChannel.current} }
@@ -200,7 +221,6 @@ export const useWebRTC = (host, localUsername, roomName) => {
     
         const onRemoveStream = (sid) => {
             return (event) => {
-            console.log("Delete remote stream");
             remoteStreamsDispatch({type: 'removeDemo', value: sid});
         };}
     
@@ -292,6 +312,8 @@ export const useWebRTC = (host, localUsername, roomName) => {
         endConnection.current = () => {
             if(localStreamState.stream) {
                 endStream(localStreamState.stream);
+                oldAudioTrack.current.stop();
+                oldVideoTrack.current.stop();
             }
             if(localStreamState.desk) {
                 endStream(localStreamState.desk);
@@ -301,7 +323,6 @@ export const useWebRTC = (host, localUsername, roomName) => {
             for (let sid in pc.current) {
             pc.current[sid].close();
             }
-            localStreamDispatch({type: 'end'});
             remoteStreamsDispatch({type: 'empty'});
         };
 
@@ -321,10 +342,23 @@ export const useWebRTC = (host, localUsername, roomName) => {
             }
         }
 
-        setCameraStream.current = (stream) => {
-            localStreamDispatch({type: 'stream', value: {stream: stream}});
+        if(localStreamState.stream) {
+            oldAudioTrack.current = localStreamState.stream.getAudioTracks()[0];
+            oldVideoTrack.current = localStreamState.stream.getVideoTracks()[0];
+            setCameraStream.current = (stream) => {
+                const newAudioTrack = stream.getAudioTracks()[0];
+                const newVideoTrack = stream.getVideoTracks()[0];
+                replaceTracks(oldAudioTrack.current, oldVideoTrack.current, 
+                    newAudioTrack, newVideoTrack, pc.current, sendOffer);
+                oldAudioTrack.current = newAudioTrack;
+                oldVideoTrack.current = newVideoTrack;
+            }
+        } else {
+            setCameraStream.current = (stream) => {
+                localStreamDispatch({type: 'stream', value: {stream: stream} })
+            }
         }
-    
+
         if(localStreamState.stream){
             socket.current.off("ready");
             socket.current.on("ready", (username) => {
