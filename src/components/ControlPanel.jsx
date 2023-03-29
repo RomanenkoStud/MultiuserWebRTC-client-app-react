@@ -14,6 +14,8 @@ import {
     People,
     CallEnd,
     Share,
+    BlurOn,
+    BlurOff,
 } from '@mui/icons-material';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import { useState } from "react";
@@ -21,6 +23,7 @@ import { useState } from "react";
 const ControlPanel = ({
     cameraEnabled, handleCamera, 
     micEnabled, handleMic, 
+    blurEnabled, handleBlur,
     screenSharing, handleScreenSharing,
     handleChat, handleParticipants,
     handleEndCall, invite}) => {
@@ -45,6 +48,11 @@ const ControlPanel = ({
             <Tooltip title={micEnabled ? 'Mute Mic' : 'Unmute Mic'}>
                 <IconButton onClick={handleMic}>
                 {micEnabled ? <Mic /> : <MicOff />}
+                </IconButton>
+            </Tooltip>
+            <Tooltip title={cameraEnabled ? 'Disable Blur' : 'Enable Blur'}>
+                <IconButton onClick={handleBlur}>
+                {blurEnabled ? <BlurOn /> : <BlurOff />}
                 </IconButton>
             </Tooltip>
             <Tooltip title={screenSharing ? 'Stop Sharing' : 'Start Sharing'}>

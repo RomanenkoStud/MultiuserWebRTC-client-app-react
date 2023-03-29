@@ -121,6 +121,7 @@ function CallScreen() {
   const roomName = params.room;
   const useMic = true;
   const useCam = true;
+  const [useBlur, setUseBlur] = useState(false);
   const { 
     socket, localStreamState, remoteStreamsState, 
     setCameraStream, handleVideo, handleAudio, setDeskStream,
@@ -170,6 +171,37 @@ function CallScreen() {
     navigate("/");
   }
 
+  const renderCamera = () => {
+    if(localStreamState.mic || localStreamState.cam) {
+      if(useBlur) {
+        return (
+          <CameraBlurBackground 
+            stream={localStreamState.stream} 
+            setStream={setCameraStream.current}
+            useMic={localStreamState.mic}
+            useCam={localStreamState.cam}
+          />
+        );
+      } else {
+        return (
+          <Camera
+            stream={localStreamState.stream} 
+            setStream={setCameraStream.current}
+            useMic={localStreamState.mic}
+            useCam={localStreamState.cam}
+          />
+        );
+      }
+    } else {
+      return (
+        <CameraOff 
+          stream={localStreamState.stream} 
+          setStream={setCameraStream.current}
+        />
+      );
+    }
+  }
+
   return (
     <Container component="main" maxWidth='xl'>
       <CssBaseline />
@@ -184,16 +216,7 @@ function CallScreen() {
       <Container maxWidth='xl'>
         {deskState||remoteStreamsState.desk[0] ?
         (<VideosLayoutWithDesk 
-          userCamera={localStreamState.mic||localStreamState.cam ? 
-          <Camera 
-            stream={localStreamState.stream} 
-            setStream={setCameraStream.current}
-            useMic={localStreamState.mic}
-            useCam={localStreamState.cam}
-            /> : <CameraOff 
-            stream={localStreamState.stream} 
-            setStream={setCameraStream.current}
-            />} 
+          userCamera={renderCamera()} 
           userDesk={deskState? <ScreenSharing 
             setStream={setDeskStream.current} 
             onCancel={() => setDeskState(false)}/> : false} 
@@ -201,16 +224,7 @@ function CallScreen() {
             desk={remoteStreamsState.desk[0] ? remoteStreamsState.desk : false}
         />) :
         (<VideosLayout 
-          userCamera={localStreamState.mic||localStreamState.cam ? 
-            <Camera 
-              stream={localStreamState.stream} 
-              setStream={setCameraStream.current}
-              useMic={localStreamState.mic}
-              useCam={localStreamState.cam}
-              /> : <CameraOff 
-              stream={localStreamState.stream} 
-              setStream={setCameraStream.current}
-              />} 
+          userCamera={renderCamera()} 
           users={remoteStreamsState.users}
         />)
         }
@@ -225,6 +239,7 @@ function CallScreen() {
       <ParticipantsList participants={getParticipants(remoteStreamsState.users)} isOpen={sidebar} onClose={()=>setSidebar(false)}/>
       <ControlPanel cameraEnabled={localStreamState.cam} handleCamera={handleVideo} 
         micEnabled={localStreamState.mic} handleMic={handleAudio} 
+        blurEnabled={useBlur} handleBlur={()=>setUseBlur(!useBlur)} 
         screenSharing={localStreamState.desk} handleScreenSharing={handleDesk}
         handleChat={handleChatOpen} handleParticipants={()=>setSidebar(!sidebar)} 
         handleEndCall={handleEndCall} invite={`${window.location.origin}/invite/${roomName}`} />

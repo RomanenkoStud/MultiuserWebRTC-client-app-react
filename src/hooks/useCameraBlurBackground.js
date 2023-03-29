@@ -2,11 +2,40 @@ import { useEffect, useState, useRef } from "react";
 import { Camera } from "@mediapipe/camera_utils";
 import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
 
+const audioMuted = () => {
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+    const gainNode = audioContext.createGain();
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    oscillator.connect(gainNode);
+    const dest = audioContext.createMediaStreamDestination();
+    gainNode.connect(dest);
+    oscillator.start();
+    const audioTrack = dest.stream.getAudioTracks()[0];
+    audioTrack.enabled = false;
+    return audioTrack;
+}
+
+const videoMuted = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 300;
+    canvas.height = 300;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const videoStream = canvas.captureStream();
+    const videoTrack = videoStream.getVideoTracks()[0];
+    videoTrack.enabled = false;
+    return videoTrack;
+}
 
 export const useCameraBlurBackground = () => {
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
-    const [stream, setStream] = useState();
+    const streamLocal = useRef();
+    const reset = useRef();
     useEffect(() => {
         const videoElement = videoRef.current;
         const canvasElement = canvasRef.current;
@@ -40,26 +69,38 @@ export const useCameraBlurBackground = () => {
         });
         selfieSegmentation.onResults(onResults);
 
-        const camera = new Camera(videoElement, {
-            onFrame: async () => {
-            await selfieSegmentation.send({image: videoElement});
-            },
-            aspectRatio: 1,
-        });
-
-        camera.start();
-        
-        navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((stream) => {
-            const audio = stream.getAudioTracks()[0];
-            const videoBlured = canvasElement.captureStream().getVideoTracks()[0];
-            setStream(new MediaStream([audio, videoBlured]));
-        });
+        streamLocal.current = (setCameraStream, mic, cam) => {
+            const camera = new Camera(videoElement, {
+                onFrame: async () => {
+                await selfieSegmentation.send({image: videoElement});
+                },
+                aspectRatio: 1,
+            });
+            if(mic)
+            {
+                if(cam) camera.start();
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                .then((stream) => {
+                    const audio = stream.getAudioTracks()[0];
+                    const videoBlured = cam ? 
+                        canvasElement.captureStream().getVideoTracks()[0] : videoMuted();
+                    setCameraStream(new MediaStream([audio, videoBlured]));
+                });
+            } else {
+                camera.start();
+                const audio = audioMuted();
+                const videoBlured = canvasElement.captureStream().getVideoTracks()[0];
+                setCameraStream(new MediaStream([audio, videoBlured]));
+            }
+            reset.current = () => {
+                camera.stop();
+            }
+        }
 
         return () => {
-            camera.stop();
+            reset.current();
             selfieSegmentation.reset();
         }
     }, []);
-    return {videoRef, canvasRef, stream};
+    return {videoRef, canvasRef, streamLocal, reset};
 };
