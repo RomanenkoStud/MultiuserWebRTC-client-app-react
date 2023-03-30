@@ -7,10 +7,16 @@ import RoomConnectIcon from '../../icons/RoomConnectIcon';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
 import MoreIcon from '@mui/icons-material/MoreVert';
 import HomeIcon from '@mui/icons-material/Home';
+import SearchIcon from '@mui/icons-material/Search';
+import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
+import LinkIcon from '@mui/icons-material/Link';
+import TuneIcon from '@mui/icons-material/Tune';
 import { LogoAnimationContext } from './LogoAnimationContext';
 import { useLogoAnimation } from '../../hooks/useLogoAnimation';
+import LinkWithLogoAnimation from "./LinkWithLogoAnimation";
 
 export default function NavBar({currentUser, logOut}) {
     const [anchorEl, setAnchorEl] = useState(null);
@@ -54,8 +60,8 @@ export default function NavBar({currentUser, logOut}) {
         setDrawerOpen(open);
     };
 
-    const drawerItem = (text, icon, page) => (
-        <ListItem key={text} disablePadding onClick={() => {navigate(page)}}>
+    const drawerItem = (text, icon, onClick) => (
+        <ListItem key={text} disablePadding onClick={onClick}>
             <ListItemButton>
                 <ListItemIcon>
                 {icon}
@@ -72,18 +78,29 @@ export default function NavBar({currentUser, logOut}) {
         onClick={toggleDrawer(false)}
         onKeyDown={toggleDrawer(false)}
         >
-        <List>
-            {drawerItem("Home", <HomeIcon/>, "/")}
-            {drawerItem("Profile", <AccountCircle/>, "/")}
-            {drawerItem("Profile", <AccountCircle/>, "/")}
-        </List>
-        <Divider />
-        <List>
-            {drawerItem("Home", <HomeIcon/>, "/")}
-            {drawerItem("Profile", <AccountCircle/>, "/")}
-            {drawerItem("Profile", <AccountCircle/>, "/")}
-        </List>
-    </Box>
+            <List>
+                {drawerItem("Home", <HomeIcon/>, () => {navigate("/")})}
+                {drawerItem("Search", <SearchIcon/>, () => {navigate("/")})}
+            </List>
+            <Divider />
+            <List>
+                {drawerItem("Create room", <VideocamOutlinedIcon/>, () => {navigate("/connect")})}
+                {drawerItem("Connect to room", <LinkIcon/>, () => {navigate("/connect")})}
+                {drawerItem("Settings", <TuneIcon/>, () => {navigate("/connect")})}
+                {currentUser ? <>
+                    {drawerItem("Profile", <AccountCircle/>, () => {navigate("/")})}
+                    {drawerItem("LogOut", <LogoutIcon/>, 
+                    () => {
+                        logOut(); 
+                        navigate("/login/");
+                    })}
+                    </>
+                : <>
+                    {drawerItem("SignUp", <AccountCircle/>, () => {navigate("/register")})}
+                    {drawerItem("LogIn", <LoginIcon/>, () => {navigate("/login")})}
+                </>}
+            </List>
+        </Box>
     );
 
     const menuId = 'primary-search-account-menu';
@@ -107,13 +124,14 @@ export default function NavBar({currentUser, logOut}) {
         {currentUser && 
         <MenuItem onClick={() => {
                 handleMenuClose();
-                logOut();}}> 
+                logOut();
+                navigate("/login");}}> 
             LogOut
         </MenuItem>}
         {!currentUser &&
         <MenuItem onClick={() => {
             handleMenuClose();
-            navigate("/login/");}}>
+            navigate("/login");}}>
             Login
         </MenuItem>}
         </Menu>
@@ -172,10 +190,12 @@ export default function NavBar({currentUser, logOut}) {
             >
                 {renderDrawerItems}
             </Drawer>
+            <LinkWithLogoAnimation to={"/"} style={{ textDecoration: 'none' }}>
             <RoomConnectIcon 
                 animation={logoAnimationState} 
                 style={{ width: '150px', height: '50px' }} 
             />
+            </LinkWithLogoAnimation>
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
                 {currentUser ? (
