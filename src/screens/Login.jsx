@@ -1,11 +1,13 @@
 import { useState } from "react";
-import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
-import TextField from '@mui/material/TextField';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import Alert from '@mui/material/Alert';
+import { 
+    Button, 
+    CssBaseline, 
+    TextField, 
+    Box, 
+    Typography, 
+    Container, 
+    Alert 
+} from '@mui/material';
 import isEmail from 'validator/lib/isEmail';
 import { useLogoAnimation } from '../hooks/useLogoAnimation';
 import { useDispatch } from "react-redux";

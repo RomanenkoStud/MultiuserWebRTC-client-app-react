@@ -1,9 +1,19 @@
 import { useEffect, useState } from "react";
-import { CssBaseline, Box, Container, Grid, Button } from '@mui/material';
-import { FormGroup, FormControlLabel, Checkbox } from '@mui/material';
-import Camera  from "../components/UserMediaInputs/Camera";
-import CameraOff  from "../components/UserMediaInputs/CameraOff";
-import CameraBlurBackground from "../components/UserMediaInputs/CameraBlurBackground";
+import { 
+    CssBaseline, 
+    Box, 
+    Container, 
+    Grid, 
+    Button, 
+    FormGroup, 
+    FormControlLabel, 
+    Checkbox 
+} from '@mui/material';
+import { 
+    Camera, 
+    CameraOff, 
+    CameraBlurBackground
+}  from "../components/UserMediaInputs/UserMediaInputs";
 
 const endStream = (stream) => {
     stream.getTracks().forEach(function(track) {

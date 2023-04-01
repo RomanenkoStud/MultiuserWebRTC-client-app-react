@@ -1,20 +1,26 @@
-import CssBaseline from '@mui/material/CssBaseline';
 import LinkWithLogoAnimation from "../components/NavBar/LinkWithLogoAnimation";
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Icon from '@mui/material/Icon';
-import Box from '@mui/material/Box';
-import Zoom from '@mui/material/Zoom';
-import Fade from '@mui/material/Fade';
-import { styled } from '@mui/material/styles';
-import DesktopMacIcon from '@mui/icons-material/DesktopMac';
-import ImageIcon from '@mui/icons-material/Image';
-import VideoCallIcon from '@mui/icons-material/VideoCall';
+import { 
+    CssBaseline, 
+    Button, 
+    Typography, 
+    Container, 
+    Grid, 
+    Icon, 
+    Box, 
+    Zoom, 
+    Fade, 
+    Card, 
+    CardContent,
+    CardActions,
+    styled 
+} from '@mui/material';
+import { 
+    DesktopMac as DesktopMacIcon, 
+    Image as ImageIcon, 
+    VideoCall as VideoCallIcon 
+} from '@mui/icons-material';
 import { useState, useRef, useEffect } from 'react';
 import { useTrail, animated } from 'react-spring';
-import { Card, CardContent,CardActions } from '@mui/material';
 
 const HomeContainer = styled(Container)({
     marginTop: '4rem',

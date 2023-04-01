@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import UserVideo from "../UserVideo/UserVideo";
+import UserVideo from "../UserVideo";
 
 const streamLocal = (setStream) => {
     // Create dummy audio track

@@ -1,17 +1,25 @@
 import { useEffect, useState } from "react";
+import { 
+    CssBaseline, 
+    Box, 
+    Container, 
+    Grid, 
+    Snackbar, 
+    Alert, 
+    useMediaQuery, 
+} from '@mui/material';
 import DeskVideo from "../components/DeskVideo";
-import { CssBaseline, Box, Container, Grid } from '@mui/material';
-import { useMediaQuery } from '@mui/material';
-import { Snackbar, Alert } from '@mui/material';
-import UserVideo from '../components/UserVideo/UserVideo';
+import UserVideo from '../components/UserVideo';
 import Chat from "../components/Chat";
-import Camera  from "../components/UserMediaInputs/Camera";
-import CameraOff  from "../components/UserMediaInputs/CameraOff";
-import CameraBlurBackground from "../components/UserMediaInputs/CameraBlurBackground";
-import ScreenSharing from "../components/UserMediaInputs/ScreenSharing";
-import { useWebRTC } from "../hooks/useWebRTC";
 import ControlPanel from "../components/ControlPanel";
 import ParticipantsList from "../components/ParticipantsList";
+import { 
+    Camera, 
+    CameraOff, 
+    CameraBlurBackground, 
+    ScreenSharing
+}  from "../components/UserMediaInputs/UserMediaInputs";
+import { useWebRTC } from "../hooks/useWebRTC";
 import Carousel from 'react-material-ui-carousel';
 
 const host = "http://azure-flask-socketio.azurewebsites.net/";

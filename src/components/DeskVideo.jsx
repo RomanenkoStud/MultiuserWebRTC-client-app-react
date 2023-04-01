@@ -1,7 +1,5 @@
 import VideoItem from "./VideoItem";
-import { Paper } from '@mui/material';
-import { Skeleton } from '@mui/material';
-import { Chip } from '@mui/material';
+import { Paper, Skeleton, Chip } from '@mui/material';
 
 function DeskVideo(props) {
 

@@ -1,25 +1,36 @@
 import { useState, useEffect, useContext } from 'react';
-import {AppBar, Box, Toolbar, IconButton} from '@mui/material';
-import {Menu, MenuItem} from '@mui/material';
-import {Drawer, Divider} from '@mui/material';
-import {List, ListItem, ListItemIcon, ListItemText, ListItemButton} from '@mui/material';
+import {
+    AppBar, 
+    Box, 
+    Toolbar, 
+    IconButton,
+    Menu, 
+    MenuItem, 
+    Drawer, 
+    Divider,
+    List, 
+    ListItem, 
+    ListItemIcon, 
+    ListItemText, 
+    ListItemButton
+} from '@mui/material';
+import {
+    Menu as MenuIcon,
+    AccountCircle,
+    Login as LoginIcon,
+    Logout as LogoutIcon,
+    MoreVert as MoreIcon,
+    Home as HomeIcon,
+    Search as SearchIcon,
+    VideocamOutlined as VideocamOutlinedIcon,
+    Link as LinkIcon,
+    Tune as TuneIcon,
+} from '@mui/icons-material';
 import RoomConnectIcon from '../../icons/RoomConnectIcon';
-import MenuIcon from '@mui/icons-material/Menu';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import LoginIcon from '@mui/icons-material/Login';
-import LogoutIcon from '@mui/icons-material/Logout';
-import MoreIcon from '@mui/icons-material/MoreVert';
-import HomeIcon from '@mui/icons-material/Home';
-import SearchIcon from '@mui/icons-material/Search';
-import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
-import LinkIcon from '@mui/icons-material/Link';
-import TuneIcon from '@mui/icons-material/Tune';
 import { LogoAnimationContext } from './LogoAnimationContext';
 import { useLogoAnimation } from '../../hooks/useLogoAnimation';
 import LinkWithLogoAnimation from "./LinkWithLogoAnimation";
-
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/slices/authSlice";
 
 export default function NavBar() {

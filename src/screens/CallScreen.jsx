@@ -4,8 +4,7 @@ import { useLogoAnimation } from "../hooks/useLogoAnimation";
 //import { Typography } from '@mui/material';
 import InCall from "./InCall";
 import Preview from "./Preview";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { changeConfig } from "../store/slices/settingsSlice";
 
 function CallScreen() {
