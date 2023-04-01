@@ -7,6 +7,7 @@ import Login from "./Login";
 import ConnectScreen from "./ConnectScreen";
 import Settings from "./Settings";
 import Profile from "./Profile";
+import CreateRoom from "./CreateRoom";
 
 function RouteList() {
     return (
@@ -19,6 +20,7 @@ function RouteList() {
         <Route path="/connect/" element={<ConnectScreen/>} />
         <Route path="/settings/" element={<Settings/>} />
         <Route path="/profile/" element={<Profile/>} />
+        <Route path="/create/" element={<CreateRoom/>} />
     </Routes>
     );
 }

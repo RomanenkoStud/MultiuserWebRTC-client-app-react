@@ -102,7 +102,7 @@ export default function NavBar() {
             </List>
             <Divider />
             <List>
-                {drawerItem("Create room", <VideocamOutlinedIcon/>, () => {navigate("/connect")})}
+                {isLoggedIn && drawerItem("Create room", <VideocamOutlinedIcon/>, () => {navigate("/create")})}
                 {drawerItem("Connect to room", <LinkIcon/>, () => {navigate("/connect")})}
                 {drawerItem("Settings", <TuneIcon/>, () => {navigate("/settings")})}
                 {isLoggedIn ? <>
