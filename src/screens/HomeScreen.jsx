@@ -19,8 +19,11 @@ import {
     Image as ImageIcon, 
     VideoCall as VideoCallIcon 
 } from '@mui/icons-material';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import { useState, useRef, useEffect } from 'react';
 import { useTrail, animated } from 'react-spring';
+import Carousel from "react-material-ui-carousel";
 
 const HomeContainer = styled(Container)({
     marginTop: '4rem',
@@ -124,38 +127,62 @@ const ShuffleList = ({ list, interval }) => {
 };
 
 const Pricing = () => {
-    return (
-        <Grid container spacing={3} justifyContent="center">
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2 }}>
-            {plans.map((plan) => (
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
+    const renderPlan = (plan) => {
+        return (
             <Card sx={{ maxWidth: 345, marginLeft: plan.title === "Premium Plan" ? 2 : 0 }} key={plan.title}>
                 <CardContent>
-                <Typography variant="h5" component="div" gutterBottom>
-                    {plan.title}
-                </Typography>
-                <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                    {plan.description}
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                    {plan.features.map((feature, index) => (
-                    <>
-                        {feature}
-                        <br />
-                    </>
-                    ))}
-                </Typography>
-                <Typography variant="h6" component="div" sx={{ marginTop: 2 }}>
-                    {plan.price}
-                </Typography>
+                    <Typography variant="h5" component="div" gutterBottom>
+                        {plan.title}
+                    </Typography>
+                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                        {plan.description}
+                    </Typography>
+                    <Typography variant="body1" gutterBottom>
+                        {plan.features.map((feature, index) => (
+                        <>
+                            {feature}
+                            <br />
+                        </>
+                        ))}
+                    </Typography>
+                    <Typography variant="h6" component="div" sx={{ marginTop: 2 }}>
+                        {plan.price}
+                    </Typography>
                 </CardContent>
                 <CardActions sx={{ display: "flex", justifyContent: "center", paddingBottom: 2 }}>
-                <Button variant="contained" disabled={plan.disabled} sx={{ backgroundColor: plan.disabled ? "gray" : undefined }}>
-                    {plan.buttonText}
-                </Button>
+                    <Button variant="contained" disabled={plan.disabled} sx={{ backgroundColor: plan.disabled ? "gray" : undefined }}>
+                        {plan.buttonText}
+                    </Button>
                 </CardActions>
             </Card>
+        );
+    }
+    
+    return (
+        <Grid item xs={12} justifyContent="center">
+        {isSmallScreen ? (
+            <Carousel autoPlay={false} sx={{
+                animation: 'slide 1s ease-in-out',
+                '& .slick-slide': {
+                    padding: '0 8px',
+                },
+            }}>
+            {plans.map((plan) => (
+                <Container key={plan.title} sx={{minHeight: 350, display: "flex", justifyContent: "center", alignItems: "center"}}>
+                    {renderPlan(plan)}
+                </Container>
             ))}
-        </Box>
+            </Carousel>
+        ) : (
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2 }}>
+            {plans.map((plan) => (
+                renderPlan(plan)
+            ))}
+            </Box>
+        )}
         </Grid>
     );
 };
@@ -164,10 +191,10 @@ const Footer = () => {
     return (
         <Box sx={{ textAlign: 'center', marginTop: '2rem' }}>
         <Typography variant="body2" color="textSecondary">
-            Created by [Your Name] using:
+            Created by @RomanenkoStud using:
         </Typography>
         <Typography variant="body2" color="textSecondary">
-            React.js | Node.js | Express.js | MongoDB | Material-UI | React Router | Socket.IO | WebRTC
+            React.js | Redux | Material-UI | React Router | Socket.IO | WebRTC | Mediapipe | React Spring
         </Typography>
         <Box sx={{ marginTop: '1rem' }}>
             <Typography variant="body2" color="textSecondary">
@@ -185,6 +212,8 @@ const Footer = () => {
 const HomeScreen = () => {
     const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
     const additionalInfoRef = useRef(null);
+    const theme = useTheme();
+    const matchesMd = useMediaQuery(theme.breakpoints.down('md'));
     useEffect(() => {
         if (showAdditionalInfo && additionalInfoRef.current) {
             additionalInfoRef.current.scrollIntoView({ behavior: "smooth" });
@@ -200,14 +229,14 @@ const HomeScreen = () => {
     return (
         <HomeContainer>
         <CssBaseline />
-        <Grid container spacing={3} sx={{marginBottom: 10,}}>
-            <Grid item xs={12} sm={6}>
+        <Grid container spacing={3} sx={{ marginBottom: 10 }}>
+            <Grid item xs={12} sm={12} md={6}>
             <Zoom in={true} timeout={2000}>
                 <img src="/images/videoCallDemo1.jpg" alt="Video icon" style={{ width: '100%' }} />
             </Zoom>
             </Grid>
-            <Grid item xs={12} sm={6}>
-            <Typography variant="h2" component="h1" gutterBottom>
+            <Grid item xs={12} sm={12} md={6}>
+            <Typography variant={matchesMd ? "h3" : "h2"} component="h1" gutterBottom>
                 Welcome to RoomConnect!
             </Typography>
             <Fade in={true} timeout={1000}>
@@ -220,26 +249,30 @@ const HomeScreen = () => {
                 </Typography>
                 </Description>
             </Fade>
-            <Box>
-                <ActionButton component={LinkWithLogoAnimation} to="/connect" variant="contained" color="primary">
-                Create Room
+            <Box  sx={matchesMd && {display: 'flex', justifyContent: 'center'}}>
+                <LinkWithLogoAnimation to={'/create'} style={{ textDecoration: 'none' }}>
+                <ActionButton variant="contained" color="primary">
+                    Create Room
                 </ActionButton>
-                <ActionButton component={LinkWithLogoAnimation} to="/connect" variant="outlined" color="primary">
-                Join Room
+                </LinkWithLogoAnimation>
+                <LinkWithLogoAnimation to={'/connect'} style={{ textDecoration: 'none'}}>
+                <ActionButton variant="outlined" color="primary">
+                    Join Room
                 </ActionButton>
+                </LinkWithLogoAnimation>
             </Box>
             </Grid>
-            <Grid container spacing={1} justifyContent="center" sx={{marginTop: 1,}} ref={additionalInfoRef}>
+            <Grid container spacing={1} justifyContent="center" sx={{ marginTop: 1 }} ref={additionalInfoRef}>
             {showAdditionalInfo && (
                 <>
-                <Typography variant="h4" gutterBottom sx={{marginTop: 5,}}>
+                <Typography variant="h4" gutterBottom sx={{ marginTop: 5 }}>
                     Features
                 </Typography>
-                <ShuffleList list={features} interval={10000}/>
+                <ShuffleList list={features} interval={10000} />
                 <Typography variant="h4" gutterBottom sx={{ marginTop: 5 }}>
                     Pricing
                 </Typography>
-                <Pricing/>
+                <Pricing />
                 {/* add additional content for my homepage here */}
                 </>
             )}
