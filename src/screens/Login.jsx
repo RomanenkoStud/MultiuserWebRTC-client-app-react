@@ -8,16 +8,20 @@ import Container from '@mui/material/Container';
 import Alert from '@mui/material/Alert';
 import isEmail from 'validator/lib/isEmail';
 import { useLogoAnimation } from '../hooks/useLogoAnimation';
+import { useDispatch } from "react-redux";
+import { login } from "../store/slices/authSlice";
 
 import authService from "../services/auth.service";
 
-export default function Login({logIn}) {
+export default function Login() {
     const [email, setEmail] = useState("");
     const [emailError, setEmailError] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState(false);
     const [message, setMessage] = useState({message: "", successful: false});
     const { navigate } = useLogoAnimation();
+
+    const dispatch = useDispatch();
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -34,7 +38,7 @@ export default function Login({logIn}) {
                             message: "Wellcome " + response.username + "!",
                             successful: true,
                         });
-                        logIn(response);
+                        dispatch(login(response));
                         setTimeout(() => {
                             navigate("/");
                         }, 1500); // 3 second delay

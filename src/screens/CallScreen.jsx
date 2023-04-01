@@ -4,7 +4,9 @@ import { useLogoAnimation } from "../hooks/useLogoAnimation";
 //import { Typography } from '@mui/material';
 import InCall from "./InCall";
 import Preview from "./Preview";
-import settingsService from "../services/settings.service";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { changeConfig } from "../store/slices/settingsSlice";
 
 function CallScreen() {
   const params = useParams();
@@ -12,14 +14,15 @@ function CallScreen() {
   const room = params.room;
   const { navigate } = useLogoAnimation();
   const [inCall, setInCall] = useState(false);
-  const [settings, setSettings] = useState(settingsService.settings);
   const onStart = () => {
     setInCall(true);
   }
 
+  const settings = useSelector((state) => state.settings.config);
+  const dispatch = useDispatch();
+
   const onSetSettings = (newSettings) => {
-    settingsService.updateSettings(newSettings);
-    setSettings(newSettings);
+    dispatch(changeConfig(newSettings));
   }
 
   const onEnd = () => {

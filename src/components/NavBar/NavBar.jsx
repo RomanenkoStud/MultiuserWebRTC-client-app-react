@@ -18,7 +18,11 @@ import { LogoAnimationContext } from './LogoAnimationContext';
 import { useLogoAnimation } from '../../hooks/useLogoAnimation';
 import LinkWithLogoAnimation from "./LinkWithLogoAnimation";
 
-export default function NavBar({currentUser, logOut}) {
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { logout } from "../../store/slices/authSlice";
+
+export default function NavBar() {
     const [anchorEl, setAnchorEl] = useState(null);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
     const { logoAnimationState, setLogoAnimationState } = useContext(LogoAnimationContext);
@@ -26,6 +30,9 @@ export default function NavBar({currentUser, logOut}) {
     const [isDrawerOpen, setDrawerOpen] = useState(false);
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+
+    const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         if (logoAnimationState) {
@@ -86,12 +93,12 @@ export default function NavBar({currentUser, logOut}) {
             <List>
                 {drawerItem("Create room", <VideocamOutlinedIcon/>, () => {navigate("/connect")})}
                 {drawerItem("Connect to room", <LinkIcon/>, () => {navigate("/connect")})}
-                {drawerItem("Settings", <TuneIcon/>, () => {navigate("/connect")})}
-                {currentUser ? <>
+                {drawerItem("Settings", <TuneIcon/>, () => {navigate("/settings")})}
+                {isLoggedIn ? <>
                     {drawerItem("Profile", <AccountCircle/>, () => {navigate("/")})}
                     {drawerItem("LogOut", <LogoutIcon/>, 
                     () => {
-                        logOut(); 
+                        dispatch(logout());
                         navigate("/login/");
                     })}
                     </>
@@ -120,15 +127,15 @@ export default function NavBar({currentUser, logOut}) {
         open={isMenuOpen}
         onClose={handleMenuClose}
         >
-        {currentUser && <MenuItem onClick={handleMenuClose}>Profile</MenuItem>}
-        {currentUser && 
+        {isLoggedIn && <MenuItem onClick={handleMenuClose}>Profile</MenuItem>}
+        {isLoggedIn && 
         <MenuItem onClick={() => {
                 handleMenuClose();
-                logOut();
+                dispatch(logout());
                 navigate("/login");}}> 
             LogOut
         </MenuItem>}
-        {!currentUser &&
+        {!isLoggedIn &&
         <MenuItem onClick={() => {
             handleMenuClose();
             navigate("/login");}}>
@@ -198,7 +205,7 @@ export default function NavBar({currentUser, logOut}) {
             </LinkWithLogoAnimation>
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-                {currentUser ? (
+                {isLoggedIn ? (
                     <IconButton
                     size="large"
                     edge="end"
