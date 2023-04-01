@@ -106,7 +106,7 @@ export default function NavBar() {
                 {drawerItem("Connect to room", <LinkIcon/>, () => {navigate("/connect")})}
                 {drawerItem("Settings", <TuneIcon/>, () => {navigate("/settings")})}
                 {isLoggedIn ? <>
-                    {drawerItem("Profile", <AccountCircle/>, () => {navigate("/")})}
+                    {drawerItem("Profile", <AccountCircle/>, () => {navigate("/profile")})}
                     {drawerItem("LogOut", <LogoutIcon/>, 
                     () => {
                         dispatch(logout());
@@ -138,7 +138,10 @@ export default function NavBar() {
         open={isMenuOpen}
         onClose={handleMenuClose}
         >
-        {isLoggedIn && <MenuItem onClick={handleMenuClose}>Profile</MenuItem>}
+        {isLoggedIn && <MenuItem onClick={() => {
+                handleMenuClose();
+                navigate("/profile");}}>
+            Profile</MenuItem>}
         {isLoggedIn && 
         <MenuItem onClick={() => {
                 handleMenuClose();

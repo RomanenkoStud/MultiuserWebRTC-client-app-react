@@ -6,6 +6,7 @@ import Register from "./Register";
 import Login from "./Login";
 import ConnectScreen from "./ConnectScreen";
 import Settings from "./Settings";
+import Profile from "./Profile";
 
 function RouteList() {
     return (
@@ -17,6 +18,7 @@ function RouteList() {
         <Route path="/login/" element={<Login/>} />
         <Route path="/connect/" element={<ConnectScreen/>} />
         <Route path="/settings/" element={<Settings/>} />
+        <Route path="/profile/" element={<Profile/>} />
     </Routes>
     );
 }
