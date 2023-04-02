@@ -98,7 +98,7 @@ export default function NavBar() {
         >
             <List>
                 {drawerItem("Home", <HomeIcon/>, () => {navigate("/")})}
-                {drawerItem("Search", <SearchIcon/>, () => {navigate("/")})}
+                {drawerItem("Search", <SearchIcon/>, () => {navigate("/search")})}
             </List>
             <Divider />
             <List>

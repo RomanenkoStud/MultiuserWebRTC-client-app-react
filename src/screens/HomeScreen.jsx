@@ -1,6 +1,7 @@
 import LinkWithLogoAnimation from "../components/NavBar/LinkWithLogoAnimation";
 import { 
     CssBaseline, 
+    Link,
     Button, 
     Typography, 
     Container, 
@@ -12,6 +13,7 @@ import {
     Card, 
     CardContent,
     CardActions,
+    Stepper, Step, StepLabel,
     styled 
 } from '@mui/material';
 import { 
@@ -22,7 +24,7 @@ import {
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { useState, useRef, useEffect } from 'react';
-import { useTrail, animated } from 'react-spring';
+import { useSpring, useTrail, animated } from 'react-spring';
 import Carousel from "react-material-ui-carousel";
 
 const HomeContainer = styled(Container)({
@@ -37,6 +39,40 @@ const Description = styled('div')({
 const ActionButton = styled(Button)({
     marginRight: '2rem',
 });
+
+const info = [
+    {
+        title: 'About Us',
+        description: `RoomConnect is a free and easy-to-use video conferencing app. Our mission is to provide a reliable and secure platform for people to connect virtually.`,
+    },
+    {
+        title: 'Why Choose RoomConnect',
+        description: `We offer a user-friendly interface, secure and reliable connections, and a customizable conference room. Our app is perfect for both personal and professional use.`,
+    },
+    {
+        title: 'How it Works',
+        description: `To create a room, simply click "Create Room" and customize your conference room settings. To join a room, click "Join Room" and enter the room code or link provided by the host.`,
+    },
+];
+
+const howToUseSteps = [
+    {
+        label: 'Step 1',
+        description: 'Create a new room by clicking the "Create Room" button on the homepage.',
+    },
+    {
+        label: 'Step 2',
+        description: 'Once the room is created, you can copy the link or code to share with others.',
+    },
+    {
+        label: 'Step 3',
+        description: 'If you want to join an existing room, click the "Join Room" button on the homepage and enter the room code or link.',
+    },
+    {
+        label: 'Step 4',
+        description: 'Enjoy your video conference with other participants!',
+    }
+];
 
 const features = [
     {
@@ -77,6 +113,80 @@ const plans = [
         disabled: true,
     },
 ];
+
+const HowToUseGuide = () => {
+    const [activeStep, setActiveStep] = useState(0);
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setActiveStep((prevActiveStep) =>
+            prevActiveStep === howToUseSteps.length - 1 ? 0 : prevActiveStep + 1
+            );
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
+    
+    const handleNext = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    };
+
+    const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    };
+
+    const handleFinish = () => {
+    setActiveStep(0);
+    };
+
+    const springProps = useSpring({
+        opacity: 1,
+        transform: 'translate3d(0,0,0)',
+        from: { opacity: 0, transform: 'translate3d(0,40px,0)' },
+    });
+
+    return (
+        <Grid item sx={{ mt: 8, width: '80%' }}>
+            <Typography variant="h4" sx={{ mb: 2 }}>
+                How to Use Guide
+            </Typography>
+            <Stepper activeStep={activeStep} alternativeLabel>
+                {howToUseSteps.map((step, index) => (
+                <Step key={step.label}>
+                    <StepLabel>{step.label}</StepLabel>
+                    {activeStep === index && !isSmallScreen && (
+                    <animated.div style={springProps}>
+                        <Typography variant="body1" sx={{ mb: 2, textAlign: 'center', height: 75 }}>
+                        {step.description}
+                        </Typography>
+                    </animated.div>
+                    )}
+                </Step>
+                ))}
+            </Stepper>
+            <Box sx={{ mt: 4 }}>
+                {isSmallScreen && (
+                    <Typography variant="body1" sx={{ mb: 2, textAlign: 'center', height: 90 }}>
+                        {howToUseSteps[activeStep].description}
+                    </Typography>
+                )}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 2 }}>
+                        Back
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={activeStep === howToUseSteps.length - 1 ? handleFinish : handleNext}
+                    >
+                        {activeStep === howToUseSteps.length - 1 ? 'Finish' : 'Next'}
+                    </Button>
+                </Box>
+            </Box>
+        </Grid>
+    );
+}
 
 const ShuffleList = ({ list, interval }) => {
     const [shuffle, setShuffle] = useState(false);
@@ -189,7 +299,7 @@ const Pricing = () => {
 
 const Footer = () => {
     return (
-        <Box sx={{ textAlign: 'center', marginTop: '2rem' }}>
+        <Box sx={{ textAlign: 'center', marginTop: '2rem', borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: '1rem' }}>
         <Typography variant="body2" color="textSecondary">
             Created by @RomanenkoStud using:
         </Typography>
@@ -201,11 +311,18 @@ const Footer = () => {
             Check out the code on GitHub:
             </Typography>
             <Typography variant="body2" color="textSecondary">
-            <a href="[Your GitHub repository URL]" target="_blank" rel="noopener noreferrer" style={{color: 'inherit'}}>Frontend</a> {" | "} 
-            <a href="[Your GitHub repository URL]" target="_blank" rel="noopener noreferrer" style={{color: 'inherit'}}>Backend</a>
+            <Link href="[Your GitHub repository URL]" target="_blank" rel="noopener noreferrer" underline="hover">
+                Frontend
+            </Link>{" | "}
+            <Link href="[Your GitHub repository URL]" target="_blank" rel="noopener noreferrer" underline="hover">
+                Backend
+            </Link>
             </Typography>
         </Box>
-        </Box>
+        <Typography variant="caption" color="textSecondary">
+            © 2023 RoomConnect
+        </Typography>
+    </Box>
     );
 };
 
@@ -225,7 +342,7 @@ const HomeScreen = () => {
     const toggleAdditionalInfo = () => {
         setShowAdditionalInfo(!showAdditionalInfo);
     }
-    
+
     return (
         <HomeContainer>
         <CssBaseline />
@@ -261,6 +378,9 @@ const HomeScreen = () => {
                 </ActionButton>
                 </LinkWithLogoAnimation>
             </Box>
+            </Grid>
+            <Grid container spacing={3} justifyContent="center">
+                <HowToUseGuide/>
             </Grid>
             <Grid container spacing={1} justifyContent="center" sx={{ marginTop: 1 }} ref={additionalInfoRef}>
             {showAdditionalInfo && (
