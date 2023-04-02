@@ -1,5 +1,5 @@
 class UserService {
-    async register() {
+    async register(username, email, password) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve({ status: "ok" });
@@ -7,10 +7,18 @@ class UserService {
         });
     }
 
-    async getUser() {
+    async getUser(token) {
         return new Promise((resolve) => {
             setTimeout(() => {
-                resolve({ user: "ok" });
+                resolve({ username: "username", email: "email", avatar: "image", status: "status" });
+            }, 1000); // Simulate a 1 second delay
+        });
+    }
+
+    async resetPassword(oldPassword, newPassword, token) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({ status: "ok" });
             }, 1000); // Simulate a 1 second delay
         });
     }

@@ -1,17 +1,13 @@
 class SettingsService {
-    saveSettings() {
+    updateSettings(newSettings, token) {
         //api call;
     }
 
-    updateSettings(newSettings) {
+    resetSettings(token) {
         //api call;
     }
 
-    resetSettings() {
-        //api call;
-    }
-
-    getCurrentSettings() {
+    getCurrentSettings(token) {
         //api call;
     }
 }
