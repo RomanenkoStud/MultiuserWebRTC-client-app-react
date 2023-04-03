@@ -40,7 +40,7 @@ const ActionButton = styled(Button)({
     marginRight: '2rem',
 });
 
-const info = [
+/*const info = [
     {
         title: 'About Us',
         description: `RoomConnect is a free and easy-to-use video conferencing app. Our mission is to provide a reliable and secure platform for people to connect virtually.`,
@@ -53,7 +53,7 @@ const info = [
         title: 'How it Works',
         description: `To create a room, simply click "Create Room" and customize your conference room settings. To join a room, click "Join Room" and enter the room code or link provided by the host.`,
     },
-];
+];*/
 
 const howToUseSteps = [
     {
