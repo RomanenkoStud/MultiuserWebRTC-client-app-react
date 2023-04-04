@@ -34,7 +34,7 @@ const ScreenSharing = ({setStream, onCancel}) => {
     }, [onCancel]);
 
     useEffect(() => {
-        if(deskStream){
+        if(deskStream && setStream){
             setStream(deskStream);
         }
     }, [deskStream, setStream]);

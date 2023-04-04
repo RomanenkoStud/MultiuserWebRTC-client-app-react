@@ -71,7 +71,7 @@ const Camera = ({stream, setStream, useMic, useCam}) => {
 }, [stream, mic, cam, useMic, useCam]);
 
     useEffect(() => {
-        if(cameraStream && stream !== cameraStream){
+        if(cameraStream && setStream && stream !== cameraStream){
             setStream(cameraStream);
         }
     }, [cameraStream, setStream, stream]);

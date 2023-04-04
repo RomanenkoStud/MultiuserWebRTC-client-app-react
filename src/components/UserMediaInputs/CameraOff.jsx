@@ -44,7 +44,7 @@ const CameraOff = ({stream, setStream}) => {
     }, [stream]);
 
     useEffect(() => {
-        if(cameraStream && stream !== cameraStream){
+        if(cameraStream && setStream && stream !== cameraStream){
             setStream(cameraStream);
         }
     }, [cameraStream, stream, setStream]);

@@ -93,10 +93,14 @@ const localStreamReducer = (state, action) => {
         }
         return {stream: state.stream, desk: action.value.desk, mic: state.mic, cam: state.cam};
         case 'audio':
-        muteAudio(action.value.dataChannel, state.stream, state.mic);
+        if(state.stream) {
+            muteAudio(action.value.dataChannel, state.stream, state.mic);
+        }    
         return {stream: state.stream, desk: state.desk, mic: !state.mic, cam: state.cam};
         case 'video':
-        muteVideo(action.value.dataChannel, state.stream, state.cam);
+        if(state.stream) {
+            muteVideo(action.value.dataChannel, state.stream, state.cam);
+        }
         return {stream: state.stream, desk: state.desk, mic: state.mic, cam: !state.cam};
         case 'end':
         return {stream: false, desk: false, mic: false, cam: false};
