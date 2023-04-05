@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { 
     CssBaseline, 
     Box, 
@@ -11,19 +11,20 @@ import {
 } from '@mui/material';
 import { 
     Camera, 
-    CameraOff, 
     CameraBlurBackground
 }  from "../components/UserMediaInputs/UserMediaInputs";
+
+function Preview({settings, setSettings, onStart}) {
+
+const [stream, setStream] = useState(null);
+const latestStreamValue = useRef(null);
+const latestStreamPromise = useRef(null);
 
 const endStream = (stream) => {
     stream.getTracks().forEach(function(track) {
         track.stop();
     });
 }
-
-function Preview({settings, setSettings, onStart}) {
-
-const [stream, setStream] = useState(null);
 
 const setCameraStream = (newStream) => {
     if(stream) {
@@ -46,8 +47,7 @@ const handleStartCall = () => {
 }
 
 const renderCamera = () => {
-    if(settings.mic || settings.cam) {
-    if(settings.blur) {
+    if(settings.blur && settings.cam) {
         return (
         <CameraBlurBackground 
             stream={stream} 
@@ -63,16 +63,10 @@ const renderCamera = () => {
             setStream={setCameraStream}
             useMic={settings.mic}
             useCam={settings.cam}
+            latestStreamValue={latestStreamValue}
+            latestStreamPromise={latestStreamPromise}
         />
         );
-    }
-    } else {
-    return (
-        <CameraOff 
-        stream={stream} 
-        setStream={setCameraStream}
-        />
-    );
     }
 }
 

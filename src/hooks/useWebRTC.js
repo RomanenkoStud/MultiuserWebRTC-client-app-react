@@ -164,7 +164,7 @@ export const useWebRTC = (host, localUsername, roomName, useMic, useCam) => {
     const setDeskStream = useRef();
     const setCameraStream = useRef((stream) => {
         cameraStream.current = stream;
-        localStreamDispatch({type: 'stream', value: {stream: stream} })
+        localStreamDispatch({type: 'stream', value: {stream: stream}})
     });
 
     const handleVideo = () => localStreamDispatch(

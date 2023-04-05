@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { 
     CssBaseline, 
     Box, 
@@ -15,7 +15,6 @@ import ControlPanel from "../components/ControlPanel";
 import ParticipantsList from "../components/ParticipantsList";
 import { 
     Camera, 
-    CameraOff, 
     CameraBlurBackground, 
     ScreenSharing
 }  from "../components/UserMediaInputs/UserMediaInputs";
@@ -132,6 +131,8 @@ const {
 const [chatOpen, setChatOpen] = useState(false);
 const [deskState, setDeskState] = useState(false);
 const [sidebar, setSidebar] = useState(false);
+const latestStreamValue = useRef(null);
+const latestStreamPromise = useRef(null);
 
 useEffect(() => {
     if(!deskState && localStreamState.desk){
@@ -173,8 +174,7 @@ const handleEndCall = () => {
 }
 
 const renderCamera = () => {
-    if(localStreamState.mic || localStreamState.cam) {
-    if(useBlur) {
+    if(useBlur && localStreamState.cam) {
         return (
         <CameraBlurBackground 
             stream={localStreamState.stream} 
@@ -190,16 +190,10 @@ const renderCamera = () => {
             setStream={setCameraStream.current}
             useMic={localStreamState.mic}
             useCam={localStreamState.cam}
+            latestStreamValue={latestStreamValue}
+            latestStreamPromise={latestStreamPromise}
         />
         );
-    }
-    } else {
-    return (
-        <CameraOff 
-        stream={localStreamState.stream} 
-        setStream={setCameraStream.current}
-        />
-    );
     }
 }
 
