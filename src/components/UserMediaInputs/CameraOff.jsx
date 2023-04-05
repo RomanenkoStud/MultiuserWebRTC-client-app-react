@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import UserVideo from "../UserVideo";
 
 const streamLocal = (setStream) => {
@@ -30,28 +30,24 @@ const streamLocal = (setStream) => {
     dummyStream.addTrack(audioTrack);
     dummyStream.addTrack(videoTrack);
     
-    setStream(dummyStream);
+    setTimeout(() => {
+        console.log("Empty Stream");
+        setStream(dummyStream);
+    }, 2000); 
 };
 
 const CameraOff = ({stream, setStream}) => {
-    const [cameraStream, setCameraStream] = useState(null);
     const enabled = useRef(false);
     useEffect(() => {
-            if(!enabled.current) {
-                streamLocal(setCameraStream);
+            if(!enabled.current && setStream) {
+                streamLocal(setStream);
                 enabled.current = true;
             }
-    }, [stream]);
-
-    useEffect(() => {
-        if(cameraStream && setStream && stream !== cameraStream){
-            setStream(cameraStream);
-        }
-    }, [cameraStream, stream, setStream]);
+    }, [stream, setStream]);
 
     return (
     <>
-        <UserVideo stream={cameraStream} username="you" muted/> 
+        <UserVideo stream={stream} username="you" muted/> 
     </>
     );
 };

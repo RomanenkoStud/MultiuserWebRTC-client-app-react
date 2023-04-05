@@ -50,35 +50,28 @@ const streamLocal = (setStream, useMic, useCam) => {
 };
 
 const Camera = ({stream, setStream, useMic, useCam}) => {
-    const [cameraStream, setCameraStream] = useState(null);
     const [mic, setMic] = useState(useMic);
     const [cam, setCam] = useState(useCam);
     const enabled = useRef(false);
 
     useEffect(() => {
-            if(!enabled.current) {
-                streamLocal(setCameraStream, mic, cam);
+            if(!enabled.current && setStream) {
+                streamLocal(setStream, mic, cam);
                 enabled.current = true;
             }
-    }, [stream, mic, cam]);
+    }, [stream, setStream, mic, cam]);
 
     useEffect(() => {
-        if(enabled.current && (useMic !== mic || useCam !== cam)) {
-            streamLocal(setCameraStream, useMic, useCam);
+        if(enabled.current && setStream && (useMic !== mic || useCam !== cam)) {
+            streamLocal(setStream, useMic, useCam);
             setMic(useMic);
             setCam(useCam);
         }
-}, [stream, mic, cam, useMic, useCam]);
-
-    useEffect(() => {
-        if(cameraStream && setStream && stream !== cameraStream){
-            setStream(cameraStream);
-        }
-    }, [cameraStream, setStream, stream]);
+}, [stream, setStream, mic, cam, useMic, useCam]);
 
     return (
     <>
-        <UserVideo stream={cameraStream} username="you" muted/> 
+        <UserVideo stream={stream} username="you" muted/> 
     </>
     );
 };

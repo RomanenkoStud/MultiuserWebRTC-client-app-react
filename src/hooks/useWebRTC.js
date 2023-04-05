@@ -27,7 +27,11 @@ const STUN_SERVERS = {
     ],
 };
 
-const replaceTracks = (oldAudioTrack, oldVideoTrack, newAudioTrack, newVideoTrack, pc, sendOffer) => {
+const replaceTracks = (oldStream, newStream, pc, sendOffer) => {
+    const oldAudioTrack = oldStream.getAudioTracks()[0];
+    const oldVideoTrack = oldStream.getVideoTracks()[0];
+    const newAudioTrack = newStream.getAudioTracks()[0];
+    const newVideoTrack = newStream.getVideoTracks()[0];
     for (let sid in pc) {
         pc[sid].getSenders().forEach(sender => {
             if (sender.track === oldAudioTrack) {
@@ -155,13 +159,13 @@ export const useWebRTC = (host, localUsername, roomName, useMic, useCam) => {
         {users: [], desk: []});
     const [showMessage, setShowMessage] = useState(false);
     const [message, setMessage] = useState("");
-
+    const cameraStream = useRef();
     const endConnection = useRef();
     const setDeskStream = useRef();
-    const setCameraStream = useRef();
-
-    const oldAudioTrack = useRef();
-    const oldVideoTrack = useRef();
+    const setCameraStream = useRef((stream) => {
+        cameraStream.current = stream;
+        localStreamDispatch({type: 'stream', value: {stream: stream} })
+    });
 
     const handleVideo = () => localStreamDispatch(
         {type: 'video', value: {dataChannel: dataChannel.current} }
@@ -316,8 +320,6 @@ export const useWebRTC = (host, localUsername, roomName, useMic, useCam) => {
         endConnection.current = () => {
             if(localStreamState.stream) {
                 endStream(localStreamState.stream);
-                oldAudioTrack.current.stop();
-                oldVideoTrack.current.stop();
             }
             if(localStreamState.desk) {
                 endStream(localStreamState.desk);
@@ -347,18 +349,14 @@ export const useWebRTC = (host, localUsername, roomName, useMic, useCam) => {
         }
 
         if(localStreamState.stream) {
-            oldAudioTrack.current = localStreamState.stream.getAudioTracks()[0];
-            oldVideoTrack.current = localStreamState.stream.getVideoTracks()[0];
             setCameraStream.current = (stream) => {
-                const newAudioTrack = stream.getAudioTracks()[0];
-                const newVideoTrack = stream.getVideoTracks()[0];
-                replaceTracks(oldAudioTrack.current, oldVideoTrack.current, 
-                    newAudioTrack, newVideoTrack, pc.current, sendOffer);
-                oldAudioTrack.current = newAudioTrack;
-                oldVideoTrack.current = newVideoTrack;
+                replaceTracks(cameraStream.current, stream, pc.current, sendOffer);
+                cameraStream.current = stream;
+                localStreamDispatch({type: 'stream', value: {stream: stream} })
             }
         } else {
             setCameraStream.current = (stream) => {
+                cameraStream.current = stream;
                 localStreamDispatch({type: 'stream', value: {stream: stream} })
             }
         }
