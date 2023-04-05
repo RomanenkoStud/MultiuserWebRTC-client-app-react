@@ -21,7 +21,7 @@ import {
 import { useWebRTC } from "../hooks/useWebRTC";
 import Carousel from 'react-material-ui-carousel';
 
-const host = "http://azure-flask-socketio.azurewebsites.net/";
+const host = "https://azure-flask-socketio.azurewebsites.net/";
 
 const userVideo = (user) => {
     return (<UserVideo stream={user.stream} username={user.id}/>);
