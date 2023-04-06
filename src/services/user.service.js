@@ -1,9 +1,14 @@
+import axios from 'axios';
+
+//const API_URL = "http://localhost:8080/api/v1/users/";
+const API_URL = "https://server-app-spring.azurewebsites.net/api/v1/users/";
+
 class UserService {
-    async register(username, email, password) {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({ status: "ok" });
-            }, 1000); // Simulate a 1 second delay
+    register(username, email, password) {
+        return axios.post(API_URL + "register", {
+            username,
+            email,
+            password
         });
     }
 

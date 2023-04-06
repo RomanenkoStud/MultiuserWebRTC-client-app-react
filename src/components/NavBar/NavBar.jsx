@@ -33,6 +33,8 @@ import LinkWithLogoAnimation from "./LinkWithLogoAnimation";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/slices/authSlice";
 
+import authService from "../../services/auth.service";
+
 export default function NavBar() {
     const [anchorEl, setAnchorEl] = useState(null);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
@@ -44,6 +46,11 @@ export default function NavBar() {
 
     const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
     const dispatch = useDispatch();
+
+    const handleLogout = () => {
+        authService.logout();
+        dispatch(logout());
+    }
 
     useEffect(() => {
         if (logoAnimationState) {
@@ -109,7 +116,7 @@ export default function NavBar() {
                     {drawerItem("Profile", <AccountCircle/>, () => {navigate("/profile")})}
                     {drawerItem("LogOut", <LogoutIcon/>, 
                     () => {
-                        dispatch(logout());
+                        handleLogout();
                         navigate("/login/");
                     })}
                     </>
@@ -145,7 +152,7 @@ export default function NavBar() {
         {isLoggedIn && 
         <MenuItem onClick={() => {
                 handleMenuClose();
-                dispatch(logout());
+                handleLogout();
                 navigate("/login");}}> 
             LogOut
         </MenuItem>}

@@ -11,10 +11,12 @@ import {
     Tooltip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import { useSelector } from "react-redux";
 
 const Profile = () => {
-    const [username, setUsername] = useState("User");
-    const [email, setEmail] = useState("User@email");
+    const user = useSelector((state) => state.auth.user);
+    const [username, setUsername] = useState(user.username);
+    const [email, setEmail] = useState(user.email);
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [status, setStatus] = useState('Online');
@@ -103,6 +105,7 @@ const Profile = () => {
                         name="username"
                         autoComplete="username"
                         value={username}
+                        InputProps={{ readOnly: true }}
                         onChange={handleUsernameChange}
                     />
                     <TextField
@@ -114,6 +117,7 @@ const Profile = () => {
                         name="email"
                         autoComplete="email"
                         value={email}
+                        InputProps={{ readOnly: true }}
                         onChange={handleEmailChange}
                     />
                     <TextField

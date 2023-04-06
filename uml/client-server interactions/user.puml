@@ -1,0 +1,21 @@
+@startuml User
+actor Client
+participant "UserService" as A
+participant "UserController" as B
+
+Client -> A: register(username, email, password)
+A -> B: POST /api/v1/users/register
+B -> B: Receive register request
+B -> B: Add user to database
+B -> B: Generate UserDto response
+B -> A: Return UserDto response to UserService
+A -> Client: Return UserDto response to client
+
+Client -> A: deleteUserById(id)
+A -> B: DELETE /api/v1/users/{id}
+B -> B: Receive deleteUserById request
+B -> B: Delete user with provided id from database
+B -> B: Generate response based on deletion success
+B -> A: Return ResponseEntity to UserService
+A -> Client: Return ResponseEntity to client
+@enduml

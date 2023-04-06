@@ -1,0 +1,19 @@
+@startuml Authenticate
+actor Client
+participant "AuthService" as A
+participant "AuthenticationRestController" as B
+
+Client -> A: login(email, password)
+A -> B: POST /api/v1/auth/login
+B -> B: Authenticate user
+B -> B: Retrieve user details
+B -> B: Generate JWT token
+B -> A: Response with user details and JWT token
+A -> Client: Response with user details and JWT token
+
+Client -> A: logout()
+A -> B: POST /api/v1/auth/logout
+B -> B: Logout user
+B -> A: Response with success status
+A -> Client: No response expected
+@enduml

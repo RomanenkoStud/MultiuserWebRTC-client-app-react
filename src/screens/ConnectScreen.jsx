@@ -8,10 +8,12 @@ import {
     Typography, 
     Container
 } from '@mui/material';
+import { useSelector } from "react-redux";
 
 export default function ConnectScreen() {
+    const user = useSelector((state) => state.auth.user);
     const [room, setRoom] = useState("");
-    const [username, setUsername] = useState("");
+    const [username, setUsername] = useState(user ? user.username : "");
     const [roomError, setRoomError] = useState(false);
     const [usernameError, setUsernameError] = useState(false);
 
@@ -50,6 +52,8 @@ export default function ConnectScreen() {
                     label="User"
                     name="user"
                     autoFocus
+                    value={username}
+                    InputProps={{ readOnly: user }}
                     onInput={(e) => {
                             setUsername(e.target.value)
                             setUsernameError(username.length >= 8 ? false : true)

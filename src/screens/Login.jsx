@@ -37,10 +37,10 @@ export default function Login() {
                 .then(
                     (response) => {
                         setMessage({
-                            message: "Wellcome " + response.username + "!",
+                            message: "Wellcome " + response.data.username + "!",
                             successful: true,
                         });
-                        dispatch(login(response));
+                        dispatch(login(response.data));
                         setTimeout(() => {
                             navigate("/");
                         }, 1500); // 3 second delay
