@@ -6,7 +6,6 @@ import {
     Box, 
     Typography, 
     Container, 
-    Alert 
 } from '@mui/material';
 import isEmail from 'validator/lib/isEmail';
 import LinkWithLogoAnimation from "../components/NavBar/LinkWithLogoAnimation";
@@ -133,7 +132,12 @@ export default function Register() {
                     >
                         Submit
                 </Button>
-                <RequestStatus message={message}/>
+                <RequestStatus message={message} 
+                link={
+                    <LinkWithLogoAnimation to="/login">
+                        Go to Login
+                    </LinkWithLogoAnimation>
+                }/>
             </Box>
         </Box>
     </Container>

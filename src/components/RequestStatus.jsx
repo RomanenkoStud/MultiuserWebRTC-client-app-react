@@ -4,7 +4,7 @@ import {
     CircularProgress
 } from '@mui/material';
 
-export default function RequestStatus({message}) {
+export default function RequestStatus({message, link}) {
 
     return (
             message.loading ? (
@@ -21,6 +21,7 @@ export default function RequestStatus({message}) {
                 message.message && (
                     <Alert severity={message.successful ? 'success' : 'error'}>
                     {message.message + " "}
+                    {link}
                     </Alert>
                 )
             )
