@@ -56,10 +56,15 @@ const Profile = () => {
         <CssBaseline />
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
                 <Avatar
-                sx={{ width: 100, height: 100, position: 'relative', overflow: 'visible' }}
+                sx={{ width: 100, height: 100, position: 'relative', overflow: 'hidden' }}
                 >
                     {image ? (
-                        <img src={image} alt="Profile" />
+                        <img src={image} alt="Profile"
+                        style={{
+                            objectFit: 'cover',
+                            width: '100%',
+                            height: '100%',
+                        }}/>
                     ) : (
                         <>{getUsernameInitials(username)}</>
                     )}
