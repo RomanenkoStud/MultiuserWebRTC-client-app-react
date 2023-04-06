@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import isEmail from 'validator/lib/isEmail';
 import LinkWithLogoAnimation from "../components/NavBar/LinkWithLogoAnimation";
-
+import RequestStatus from "../components/RequestStatus";
 import userService from "../services/user.service";
 
 export default function Register() {
@@ -20,7 +20,7 @@ export default function Register() {
     const [emailError, setEmailError] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState(false);
-    const [message, setMessage] = useState({message: "", successful: false});
+    const [message, setMessage] = useState({message: "", successful: false, loading: false});
 
     const handleSubmit = (event) => {
     event.preventDefault();
@@ -31,6 +31,11 @@ export default function Register() {
     setEmailError(validateEmail);
     setPasswordError(validatePassword);
     if (!validateUsername && !validateEmail && !validatePassword) {
+        setMessage({
+            successful: false,
+            message: "Please wait...",
+            loading: true
+        });
         userService
             .register(username, email, password)
             .then(
@@ -38,12 +43,14 @@ export default function Register() {
                     setMessage({
                         message: "Thanks for registration " + username + "!",
                         successful: true,
+                        loading: false
                     });
                 },
                 (error) => {
                     setMessage({
                         successful: false,
                         message: error.response.data,
+                        loading: false
                     });
                 }
             );
@@ -126,16 +133,7 @@ export default function Register() {
                     >
                         Submit
                 </Button>
-                {message.message && (
-                    <Alert severity={message.successful ? 'success' : 'error'}>
-                    {message.message + " "}
-                    {message.successful ?
-                    <LinkWithLogoAnimation to={`/`} style={{ textDecoration: 'none' }}>
-                        Login
-                    </LinkWithLogoAnimation>
-                    : null}
-                    </Alert>
-                )}
+                <RequestStatus message={message}/>
             </Box>
         </Box>
     </Container>

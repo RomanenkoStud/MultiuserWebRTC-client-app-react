@@ -6,13 +6,12 @@ import {
     Box, 
     Typography, 
     Container, 
-    Alert 
 } from '@mui/material';
 import isEmail from 'validator/lib/isEmail';
 import { useLogoAnimation } from '../hooks/useLogoAnimation';
 import { useDispatch } from "react-redux";
 import { login } from "../store/slices/authSlice";
-
+import RequestStatus from "../components/RequestStatus";
 import authService from "../services/auth.service";
 
 export default function Login() {
@@ -20,7 +19,7 @@ export default function Login() {
     const [emailError, setEmailError] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState(false);
-    const [message, setMessage] = useState({message: "", successful: false});
+    const [message, setMessage] = useState({message: "", successful: false, loading: false});
     const { navigate } = useLogoAnimation();
 
     const dispatch = useDispatch();
@@ -32,6 +31,11 @@ export default function Login() {
         setEmailError(validateEmail);
         setPasswordError(validatePassword);
         if (!validateEmail && !validatePassword) {
+            setMessage({
+                successful: false,
+                message: "Please wait...",
+                loading: true
+            });
             authService
                 .login(email, password)
                 .then(
@@ -39,6 +43,7 @@ export default function Login() {
                         setMessage({
                             message: "Wellcome " + response.data.username + "!",
                             successful: true,
+                            loading: false
                         });
                         dispatch(login(response.data));
                         setTimeout(() => {
@@ -49,6 +54,7 @@ export default function Login() {
                         setMessage({
                             successful: false,
                             message: error.response.data,
+                            loading: false
                         });
                     }
                 );
@@ -111,14 +117,11 @@ export default function Login() {
                         fullWidth
                         variant="contained"
                         sx={{ mt: 3, mb: 2 }}
+                        disabled={message.loading}
                     >
                         Submit
                 </Button>
-                {message.message && (
-                    <Alert severity={message.successful ? 'success' : 'error'}>
-                    {message.message + " "}
-                    </Alert>
-                )}
+                <RequestStatus message={message}/>
             </Box>
         </Box>
     </Container>
