@@ -4,6 +4,7 @@ import {
     Tooltip,
     Menu,
     MenuItem,
+    Badge,
 } from '@mui/material';
 import {
     Chat,
@@ -19,6 +20,7 @@ import {
     BlurOn,
     BlurOff,
     MoreVert,
+    Notifications,
 } from '@mui/icons-material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
@@ -31,6 +33,7 @@ const ControlPanel = ({
     blurEnabled, handleBlur,
     screenSharing, handleScreenSharing,
     handleChat, handleParticipants,
+    notifications, handleNotifications,
     handleEndCall, invite}) => {
     const [isCopied, setIsCopied] = useState(false);
     const theme = useTheme();
@@ -107,6 +110,13 @@ const ControlPanel = ({
             <Tooltip title="Open Participants">
                 <IconButton onClick={handleParticipants}>
                 <People />
+                </IconButton>
+            </Tooltip>
+            <Tooltip title="Notifications">
+                <IconButton onClick={handleNotifications}>
+                    <Badge badgeContent={notifications.length} color="error">
+                        <Notifications />
+                    </Badge>
                 </IconButton>
             </Tooltip>
             <Tooltip title="End Call">

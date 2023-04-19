@@ -24,7 +24,10 @@ export const useSpeechRecognition = (isListening, lang, onResult) => {
         if (isListening) {
             recognition.current.start();
         } else {
-            onResult(transcript.current);
+            if(transcript.current) {
+                onResult(transcript.current);
+                transcript.current = '';
+            }
             recognition.current.abort();
         }
 

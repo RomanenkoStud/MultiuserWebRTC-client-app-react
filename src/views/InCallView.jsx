@@ -123,18 +123,18 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk}) {
 function InCallView({username, room, settings, onEnd}) {
 const localUsername = username;
 const roomName = room;
+const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 const [notifications, setNotifications] = useState([]);
-const addNotification = useCallback((message, severity) => {
+const addNotification = useCallback((message, severity, link) => {
     const id = Math.random().toString(36).substring(7);
     setNotifications(
-        (prevNotifications) => [...prevNotifications,{ id, open: true, message, severity }]
+        (prevNotifications) => [...prevNotifications,{ id, open: true, message, severity, link }]
     );
 }, [setNotifications]);
 const removeNotification = (id) => {
-    const updatedNotifications = notifications.map((notification) =>
-        notification.id === id ? { ...notification, open: false } : notification
+    setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification.id !== id)
     );
-    setNotifications(updatedNotifications);
 };
 const [useBlur, setUseBlur] = useState(settings.blur);
 const { 
@@ -160,13 +160,12 @@ const onResult = (transcript) => {
 useSpeechRecognition(localStreamState.mic, 'en-US', onResult);
 
 useEffect(() => {
-    socket.current.on("fact", (hint) => {
+    /*socket.current.on("fact", (hint) => {
         console.log("fact!", hint);
         addNotification(hint, 'info');
-    });
-    socket.current.on("news", (hint) => {
-        console.log("news!", hint);
-        addNotification(hint, 'info');
+    });*/
+    socket.current.on("news", (hints) => {
+        addNotification(hints[0][0], 'info', hints[0][1]);
     });
 }, [socket, addNotification]);
 
@@ -265,9 +264,16 @@ return (
         blurEnabled={useBlur} handleBlur={()=>setUseBlur(!useBlur)} 
         screenSharing={localStreamState.desk} handleScreenSharing={handleDesk}
         handleChat={handleChatOpen} handleParticipants={()=>setSidebar(!sidebar)} 
+        notifications={notifications}
+        handleNotifications={()=> setIsNotificationsOpen(!isNotificationsOpen)}
         handleEndCall={handleEndCall} invite={`${window.location.origin}/invite/${roomName}`} />
     </Box>
-    <NotificationPanel notifications={notifications} removeNotification={removeNotification} />
+    <NotificationPanel 
+        notifications={notifications} 
+        removeNotification={removeNotification} 
+        isOpen={isNotificationsOpen}
+        onClose={()=> setIsNotificationsOpen(false)}
+    />
     </Container>
 );
 }
