@@ -326,7 +326,7 @@ const Footer = () => {
     );
 };
 
-const HomeScreen = () => {
+const HomeView = () => {
     const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
     const additionalInfoRef = useRef(null);
     const theme = useTheme();
@@ -408,4 +408,4 @@ const HomeScreen = () => {
     );
 };
 
-export default HomeScreen;
+export default HomeView;

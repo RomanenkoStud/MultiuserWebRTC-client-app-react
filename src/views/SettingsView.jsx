@@ -1,4 +1,3 @@
-import { useDispatch, useSelector } from 'react-redux';
 import {
     Container,
     CssBaseline,
@@ -9,19 +8,16 @@ import {
     FormGroup,
     Divider,
 } from '@mui/material';
-import { changeTheme, changeConfig } from '../store/slices/settingsSlice';
 
-export default function Settings() {
-    const settings = useSelector((state) => state.settings);
-    const dispatch = useDispatch();
+export default function SettingsView({settings, handleConfig, handleTheme}) {
 
     const handleThemeChange = (event) => {
-        dispatch(changeTheme(event.target.checked ? 'dark' : 'light'));
+        handleTheme(event.target.checked ? 'dark' : 'light');
     };
 
     const handleConfigChange = (event) => {
         const { name, checked } = event.target;
-        dispatch(changeConfig({ [name]: checked }));
+        handleConfig(name, checked);
     };
 
     return (

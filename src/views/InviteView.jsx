@@ -10,7 +10,7 @@ import {
     Container
 } from '@mui/material';
 
-export default function InviteScreen() {
+export default function InviteView() {
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
     const params = useParams();

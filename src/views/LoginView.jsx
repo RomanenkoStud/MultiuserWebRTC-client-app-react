@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
     Button, 
     CssBaseline, 
@@ -7,53 +7,31 @@ import {
     Typography, 
     Container, 
 } from '@mui/material';
-import isEmail from 'validator/lib/isEmail';
-import LinkWithLogoAnimation from "../components/NavBar/LinkWithLogoAnimation";
 import RequestStatus from "../components/RequestStatus";
-import userService from "../services/user.service";
+import { useLogoAnimation } from '../hooks/useLogoAnimation';
+import { useAuth } from "../hooks/useAuth";
 
-export default function Register() {
-    const [username, setUsername] = useState("");
-    const [usernameError, setUsernameError] = useState(false);
+
+export default function LoginView() {
+    const { handleLogin } = useAuth();
     const [email, setEmail] = useState("");
     const [emailError, setEmailError] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState(false);
     const [message, setMessage] = useState({message: "", successful: false, loading: false});
+    const { navigate } = useLogoAnimation();
+
+    useEffect(() => {
+        if(message.successful) {
+            setTimeout(() => {
+                navigate("/");
+            }, 1500); // 3 second delay
+        }
+    }, [message, navigate])
 
     const handleSubmit = (event) => {
-    event.preventDefault();
-    const validateUsername = username.length >= 8 ? false : true;
-    const validateEmail = !isEmail(email);
-    const validatePassword = password.length >= 8 ? false : true;
-    setUsernameError(validateUsername);
-    setEmailError(validateEmail);
-    setPasswordError(validatePassword);
-    if (!validateUsername && !validateEmail && !validatePassword) {
-        setMessage({
-            successful: false,
-            message: "Please wait...",
-            loading: true
-        });
-        userService
-            .register(username, email, password)
-            .then(
-                (response) => {
-                    setMessage({
-                        message: "Thanks for registration " + username + "!",
-                        successful: true,
-                        loading: false
-                    });
-                },
-                (error) => {
-                    setMessage({
-                        successful: false,
-                        message: error.response.data,
-                        loading: false
-                    });
-                }
-            );
-    };
+        event.preventDefault();
+        handleLogin(email, password, setEmailError, setPasswordError, setMessage);
     };
 
     return (
@@ -68,27 +46,9 @@ export default function Register() {
             }}
         >
             <Typography component="h1" variant="h5">
-            Sign Up
+            Login
             </Typography>
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-                <TextField
-                    error ={usernameError}
-                    helperText={usernameError ? "Error. Too short username" : ""}
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="user"
-                    type="text"
-                    label="User"
-                    name="user"
-                    autoComplete="username"
-                    autoFocus
-                    onInput={(e) => {
-                            const input = e.target.value;
-                            setUsername(input)
-                        }
-                    }
-                />
                 <TextField
                     error ={emailError}
                     helperText={emailError ? "Error. Input is not email" : ""}
@@ -99,6 +59,7 @@ export default function Register() {
                     type="text"
                     label="Email"
                     name="email"
+                    autoComplete="email"
                     autoFocus
                     onInput={(e) => {
                             const input = e.target.value;
@@ -129,15 +90,11 @@ export default function Register() {
                         fullWidth
                         variant="contained"
                         sx={{ mt: 3, mb: 2 }}
+                        disabled={message.loading}
                     >
                         Submit
                 </Button>
-                <RequestStatus message={message} 
-                link={
-                    <LinkWithLogoAnimation to="/login">
-                        Go to Login
-                    </LinkWithLogoAnimation>
-                }/>
+                <RequestStatus message={message}/>
             </Box>
         </Box>
     </Container>

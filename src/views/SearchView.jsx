@@ -186,7 +186,7 @@ const RoomsGrid = ({rooms}) => {
     );
 }
 
-const Search = () => {
+const SearchView = ({handleSearch}) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState(rooms);
     const [filters, setFilters] = useState([]);
@@ -265,6 +265,7 @@ const Search = () => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
+        handleSearch();
         const results = rooms.filter((room) =>
         room.roomname.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -323,4 +324,4 @@ const Search = () => {
     );
 };
 
-export default Search;
+export default SearchView;

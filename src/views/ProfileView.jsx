@@ -11,10 +11,9 @@ import {
     Tooltip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import { useSelector } from "react-redux";
 
-const Profile = () => {
-    const user = useSelector((state) => state.auth.user);
+
+const ProfileView = ({user}) => {
     const [username, setUsername] = useState(user.username);
     const [email, setEmail] = useState(user.email);
     const [password, setPassword] = useState('');
@@ -169,4 +168,4 @@ const Profile = () => {
     );
 };
 
-export default Profile;
+export default ProfileView;

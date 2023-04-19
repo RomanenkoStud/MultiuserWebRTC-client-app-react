@@ -13,7 +13,7 @@ import {
     Typography 
 } from '@mui/material';
 
-const CreateRoom = () => {
+const CreateRoomView = ({handleCreate}) => {
     const [roomName, setRoomName] = useState('');
     const [roomType, setRoomType] = useState('public');
     const [roomPassword, setRoomPassword] = useState('');
@@ -38,6 +38,7 @@ const CreateRoom = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
         // handle form submission
+        handleCreate();
     };
 
     return (
@@ -100,4 +101,4 @@ const CreateRoom = () => {
     );
 };
 
-export default CreateRoom;
+export default CreateRoomView;

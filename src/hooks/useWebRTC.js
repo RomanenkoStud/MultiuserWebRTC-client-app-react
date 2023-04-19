@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useReducer } from "react";
+import { useRef, useEffect, useReducer } from "react";
 import socketio from "socket.io-client";
 
 const connectionOptions = {
@@ -149,16 +149,14 @@ const remoteStreamsReducer = (state, action) => {
     }
 }
 
-export const useWebRTC = (host, localUsername, roomName, useMic, useCam) => {
+export const useWebRTC = (host, localUsername, roomName, settings, addNotification) => {
     const socket = useRef(null);
     const pc = useRef({}); // For RTCPeerConnection Objects
     const dataChannel = useRef({}); 
     const [localStreamState, localStreamDispatch] = useReducer(localStreamReducer, 
-        {stream: false, desk: false, mic: useMic, cam: useCam});
+        {stream: false, desk: false, mic: settings.mic, cam: settings.cam});
     const [remoteStreamsState, remoteStreamsDispatch] = useReducer(remoteStreamsReducer,
         {users: [], desk: []});
-    const [showMessage, setShowMessage] = useState(false);
-    const [message, setMessage] = useState("");
     const cameraStream = useRef();
     const endConnection = useRef();
     const setDeskStream = useRef();
@@ -193,14 +191,13 @@ export const useWebRTC = (host, localUsername, roomName, useMic, useCam) => {
             delete pc.current[username];
             delete dataChannel.current[username];
             remoteStreamsDispatch({type: 'remove', value: username});
-            setMessage(username + " left");
-            setShowMessage(true);
+            addNotification(username + " left", 'info');
         });
         return function cleanup() {
             endConnection.current();
             window.removeEventListener('beforeunload', handleTabClosing);
         };
-    }, [host]);
+    }, [host, addNotification]);
 
     useEffect(() => {
         const sendData = (data) => {
@@ -367,15 +364,14 @@ export const useWebRTC = (host, localUsername, roomName, useMic, useCam) => {
                 console.log("Ready to Connect!");
                 createPeerConnection(username);
                 sendOffer(username);
-                setMessage(username + " joined");
-                setShowMessage(true);
+                addNotification(username + " joined", 'info');
             });
             socket.current.off("data");
             socket.current.on("data", (data, username) => {
                 signalingDataHandler(data, username);
             });
         }
-    }, [localStreamState.stream, localStreamState.desk, localUsername, roomName]);
+    }, [localStreamState.stream, localStreamState.desk, localUsername, roomName, addNotification]);
 
     useEffect(() => {
         if(localStreamState.stream && !socket.current.connected){
@@ -392,9 +388,6 @@ export const useWebRTC = (host, localUsername, roomName, useMic, useCam) => {
         handleVideo,
         handleAudio,
         setDeskStream, 
-        showMessage,
-        setShowMessage, 
-        message,
         endConnection
     };
 };

@@ -1,11 +1,10 @@
-import { BrowserRouter as Router } from "react-router-dom";
-import RouteList from "./screens/RouteList";
+import MainRouter from "./controllers/MainRouter";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import NavBar from "./components/NavBar/NavBar";
 import { LogoAnimationProvider } from './components/NavBar/LogoAnimationContext';
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store/store";
+import AuthController from "./controllers/AuthController";
 
 const theme = createTheme({
     palette: {
@@ -28,10 +27,9 @@ function App() {
       <PersistGate loading={null} persistor={persistor}>
         <ThemeProvider theme={theme}>
           <LogoAnimationProvider>
-              <Router>
-                <NavBar/>
-                <RouteList/>
-              </Router>
+            <AuthController>
+              <MainRouter/>
+            </AuthController>
           </LogoAnimationProvider>
         </ThemeProvider>
       </PersistGate>

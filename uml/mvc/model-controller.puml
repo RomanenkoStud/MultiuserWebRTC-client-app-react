@@ -1,0 +1,42 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+package "Controller Layer" {
+    class AuthController {
+        +handleLogin(email: string, password: string, setEmailError: function, setPasswordError: function, setMessage: function): void
+        +handleLogout(): void
+    }
+    class SettingsController {
+        +handleTheme(mode: string): void
+        +handleConfig(name: string, checked: boolean): void
+    }
+    class RoomController {
+        +handleCreate(): void //in process
+        +handleSearch(): void //in process
+    }
+    class UserController {
+        +handleTheme(mode: string): void
+        +handleRegister: (username: string, email: string password: string, setError: function, setMessage: function): void
+        //in process
+    }
+    class CallsController {
+        //in process
+    }
+}
+
+package "Model Layer" {
+    class AuthModel {
+        -isLoggedIn: boolean
+        -user: object
+    }
+    class SettingsModel {
+        -theme: string
+        -config: object
+    }
+}
+
+AuthController --> AuthModel
+SettingsController --> SettingsModel
+UserController --> AuthModel
+@enduml

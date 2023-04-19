@@ -1,0 +1,17 @@
+@startuml
+left to right direction
+
+package "App" {
+    [Rooms] as RoomsComponent
+    [Authentication] as AuthComponent
+    [Settings] as SettingsComponent
+    [User] as UserComponent
+    [Calls] as CallsComponent
+
+    AuthComponent --> UserComponent
+    RoomsComponent --> CallsComponent
+    SettingsComponent --> CallsComponent
+    UserComponent --> CallsComponent
+}
+
+@enduml

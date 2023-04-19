@@ -30,12 +30,11 @@ import RoomConnectIcon from '../../icons/RoomConnectIcon';
 import { LogoAnimationContext } from './LogoAnimationContext';
 import { useLogoAnimation } from '../../hooks/useLogoAnimation';
 import LinkWithLogoAnimation from "./LinkWithLogoAnimation";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../../store/slices/authSlice";
+import { useAuth } from "../../hooks/useAuth";
 
-import authService from "../../services/auth.service";
 
 export default function NavBar() {
+    const { isLoggedIn, handleLogout } = useAuth();
     const [anchorEl, setAnchorEl] = useState(null);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
     const { logoAnimationState, setLogoAnimationState } = useContext(LogoAnimationContext);
@@ -43,14 +42,6 @@ export default function NavBar() {
     const [isDrawerOpen, setDrawerOpen] = useState(false);
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
-    const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
-    const dispatch = useDispatch();
-
-    const handleLogout = () => {
-        authService.logout();
-        dispatch(logout());
-    }
 
     useEffect(() => {
         if (logoAnimationState) {
@@ -105,23 +96,23 @@ export default function NavBar() {
         >
             <List>
                 {drawerItem("Home", <HomeIcon/>, () => {navigate("/")})}
-                {drawerItem("Search", <SearchIcon/>, () => {navigate("/search")})}
+                {drawerItem("Search", <SearchIcon/>, () => {navigate("/rooms")})}
             </List>
             <Divider />
             <List>
-                {isLoggedIn && drawerItem("Create room", <VideocamOutlinedIcon/>, () => {navigate("/create")})}
-                {drawerItem("Connect to room", <LinkIcon/>, () => {navigate("/connect")})}
+                {isLoggedIn && drawerItem("Create room", <VideocamOutlinedIcon/>, () => {navigate("/rooms/create")})}
+                {drawerItem("Connect to room", <LinkIcon/>, () => {navigate("/rooms/connect")})}
                 {drawerItem("Settings", <TuneIcon/>, () => {navigate("/settings")})}
                 {isLoggedIn ? <>
-                    {drawerItem("Profile", <AccountCircle/>, () => {navigate("/profile")})}
+                    {drawerItem("Profile", <AccountCircle/>, () => {navigate("/user")})}
                     {drawerItem("LogOut", <LogoutIcon/>, 
                     () => {
                         handleLogout();
-                        navigate("/login/");
+                        navigate("/login");
                     })}
                     </>
                 : <>
-                    {drawerItem("SignUp", <AccountCircle/>, () => {navigate("/register")})}
+                    {drawerItem("SignUp", <AccountCircle/>, () => {navigate("/user/register")})}
                     {drawerItem("LogIn", <LoginIcon/>, () => {navigate("/login")})}
                 </>}
             </List>
@@ -147,7 +138,7 @@ export default function NavBar() {
         >
         {isLoggedIn && <MenuItem onClick={() => {
                 handleMenuClose();
-                navigate("/profile");}}>
+                navigate("/user");}}>
             Profile</MenuItem>}
         {isLoggedIn && 
         <MenuItem onClick={() => {
@@ -242,7 +233,7 @@ export default function NavBar() {
                     <IconButton
                     size="large"
                     color="inherit"
-                    onClick={() => {navigate("/login/")}}
+                    onClick={() => {navigate("/login")}}
                     >
                         <LoginIcon />
                     </IconButton>

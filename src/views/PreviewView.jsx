@@ -14,7 +14,7 @@ import {
     CameraBlurBackground
 }  from "../components/UserMediaInputs/UserMediaInputs";
 
-function Preview({settings, setSettings, onStart}) {
+function PreviewView({settings, onSettings, onStart}) {
 
 const [stream, setStream] = useState(null);
 const latestStreamValue = useRef(null);
@@ -72,7 +72,7 @@ const renderCamera = () => {
 
 const handleChange = (event) => {
     const { name, checked } = event.target;
-    setSettings({ ...settings, [name]: checked });
+    onSettings(name, checked);
 };
 
 return (
@@ -120,4 +120,4 @@ return (
 );
 }
 
-export default Preview;
+export default PreviewView;

@@ -7,58 +7,26 @@ import {
     Typography, 
     Container, 
 } from '@mui/material';
-import isEmail from 'validator/lib/isEmail';
-import { useLogoAnimation } from '../hooks/useLogoAnimation';
-import { useDispatch } from "react-redux";
-import { login } from "../store/slices/authSlice";
+import LinkWithLogoAnimation from "../components/NavBar/LinkWithLogoAnimation";
 import RequestStatus from "../components/RequestStatus";
-import authService from "../services/auth.service";
 
-export default function Login() {
+
+export default function RegisterView({handleRegister}) {
+    const [username, setUsername] = useState("");
+    const [usernameError, setUsernameError] = useState(false);
     const [email, setEmail] = useState("");
     const [emailError, setEmailError] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState(false);
     const [message, setMessage] = useState({message: "", successful: false, loading: false});
-    const { navigate } = useLogoAnimation();
-
-    const dispatch = useDispatch();
 
     const handleSubmit = (event) => {
-        event.preventDefault();
-        const validateEmail = !isEmail(email);
-        const validatePassword = password.length >= 8 ? false : true;
-        setEmailError(validateEmail);
-        setPasswordError(validatePassword);
-        if (!validateEmail && !validatePassword) {
-            setMessage({
-                successful: false,
-                message: "Please wait...",
-                loading: true
-            });
-            authService
-                .login(email, password)
-                .then(
-                    (response) => {
-                        setMessage({
-                            message: "Wellcome " + response.data.username + "!",
-                            successful: true,
-                            loading: false
-                        });
-                        dispatch(login(response.data));
-                        setTimeout(() => {
-                            navigate("/");
-                        }, 1500); // 3 second delay
-                    },
-                    (error) => {
-                        setMessage({
-                            successful: false,
-                            message: error.response.data,
-                            loading: false
-                        });
-                    }
-                );
-        };
+    event.preventDefault();
+    handleRegister(
+        username, setUsernameError, 
+        email, setEmailError, 
+        password, setPasswordError,
+        setMessage);
     };
 
     return (
@@ -73,9 +41,27 @@ export default function Login() {
             }}
         >
             <Typography component="h1" variant="h5">
-            Login
+            Sign Up
             </Typography>
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+                <TextField
+                    error ={usernameError}
+                    helperText={usernameError ? "Error. Too short username" : ""}
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="user"
+                    type="text"
+                    label="User"
+                    name="user"
+                    autoComplete="username"
+                    autoFocus
+                    onInput={(e) => {
+                            const input = e.target.value;
+                            setUsername(input)
+                        }
+                    }
+                />
                 <TextField
                     error ={emailError}
                     helperText={emailError ? "Error. Input is not email" : ""}
@@ -86,7 +72,6 @@ export default function Login() {
                     type="text"
                     label="Email"
                     name="email"
-                    autoComplete="email"
                     autoFocus
                     onInput={(e) => {
                             const input = e.target.value;
@@ -117,11 +102,15 @@ export default function Login() {
                         fullWidth
                         variant="contained"
                         sx={{ mt: 3, mb: 2 }}
-                        disabled={message.loading}
                     >
                         Submit
                 </Button>
-                <RequestStatus message={message}/>
+                <RequestStatus message={message} 
+                link={
+                    <LinkWithLogoAnimation to="/login">
+                        Go to Login
+                    </LinkWithLogoAnimation>
+                }/>
             </Box>
         </Box>
     </Container>

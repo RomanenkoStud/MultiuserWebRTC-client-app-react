@@ -1,11 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { 
     CssBaseline, 
     Box, 
     Container, 
     Grid, 
-    Snackbar, 
-    Alert, 
     useMediaQuery, 
 } from '@mui/material';
 import DeskVideo from "../components/DeskVideo";
@@ -19,9 +17,12 @@ import {
     ScreenSharing
 }  from "../components/UserMediaInputs/UserMediaInputs";
 import { useWebRTC } from "../hooks/useWebRTC";
+import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import Carousel from 'react-material-ui-carousel';
+import NotificationPanel from "../components/NotificationPanel";
 
-const host = "https://azure-flask-socketio.azurewebsites.net/";
+const host = "http://localhost:8000/";
+//const host = "https://azure-flask-socketio.azurewebsites.net/";
 
 const userVideo = (user) => {
     return (<UserVideo stream={user.stream} username={user.id}/>);
@@ -60,7 +61,7 @@ function VideosLayout({userCamera, users}) {
         </Grid>
         </Grid>): null}
     </Grid>);
-    }
+}
 
 function VideosLayoutWithDesk({userCamera, userDesk, users, desk}) {
     const allDesk = (local, remoteArray) => {
@@ -119,34 +120,61 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk}) {
     </Grid>);
 }
 
-function InCall({username, room, settings, onEnd}) {
+function InCallView({username, room, settings, onEnd}) {
 const localUsername = username;
 const roomName = room;
+const [notifications, setNotifications] = useState([]);
+const addNotification = useCallback((message, severity) => {
+    const id = Math.random().toString(36).substring(7);
+    setNotifications(
+        (prevNotifications) => [...prevNotifications,{ id, open: true, message, severity }]
+    );
+}, [setNotifications]);
+const removeNotification = (id) => {
+    const updatedNotifications = notifications.map((notification) =>
+        notification.id === id ? { ...notification, open: false } : notification
+    );
+    setNotifications(updatedNotifications);
+};
 const [useBlur, setUseBlur] = useState(settings.blur);
 const { 
-    socket, localStreamState, remoteStreamsState, 
-    setCameraStream, handleVideo, handleAudio, setDeskStream,
-    showMessage, setShowMessage, message, endConnection
-} = useWebRTC(host, localUsername, roomName, settings.mic, settings.cam);
+    socket, 
+    localStreamState, 
+    remoteStreamsState, 
+    setCameraStream, 
+    handleVideo, 
+    handleAudio, 
+    setDeskStream, 
+    endConnection
+    } = useWebRTC(host, localUsername, roomName, settings, addNotification);
 const [chatOpen, setChatOpen] = useState(false);
 const [deskState, setDeskState] = useState(false);
 const [sidebar, setSidebar] = useState(false);
 const latestStreamValue = useRef(null);
 const latestStreamPromise = useRef(null);
 
+const onResult = (transcript) => {
+    console.log("message: " + transcript)
+    socket.current.emit('user_speech', { username: localUsername, room: roomName, transcript: transcript });
+}
+useSpeechRecognition(localStreamState.mic, 'en-US', onResult);
+
+useEffect(() => {
+    socket.current.on("fact", (hint) => {
+        console.log("fact!", hint);
+        addNotification(hint, 'info');
+    });
+    socket.current.on("news", (hint) => {
+        console.log("news!", hint);
+        addNotification(hint, 'info');
+    });
+}, [socket, addNotification]);
+
 useEffect(() => {
     if(!deskState && localStreamState.desk){
     setDeskStream.current(false);
     }
 }, [deskState, localStreamState.desk, setDeskStream]);
-
-const handleSnackbarClose = (event, reason) => {
-    if (reason === 'clickaway') {
-    return;
-    }
-
-    setShowMessage(false);
-};
 
 const handleChatOpen = () => {
     setChatOpen(true);
@@ -239,17 +267,9 @@ return (
         handleChat={handleChatOpen} handleParticipants={()=>setSidebar(!sidebar)} 
         handleEndCall={handleEndCall} invite={`${window.location.origin}/invite/${roomName}`} />
     </Box>
-    <Snackbar
-        open={showMessage}
-        autoHideDuration={3000}
-        onClose={handleSnackbarClose}
-    >
-        <Alert onClose={handleSnackbarClose} severity="info" sx={{ width: '100%' }}>
-        {message}
-        </Alert>
-    </Snackbar>
+    <NotificationPanel notifications={notifications} removeNotification={removeNotification} />
     </Container>
 );
 }
 
-export default InCall;
+export default InCallView;

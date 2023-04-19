@@ -8,23 +8,12 @@ import {
     Typography, 
     Container
 } from '@mui/material';
-import { useSelector } from "react-redux";
 
-export default function ConnectScreen() {
-    const user = useSelector((state) => state.auth.user);
+export default function ConnectView({user}) {
     const [room, setRoom] = useState("");
     const [username, setUsername] = useState(user ? user.username : "");
     const [roomError, setRoomError] = useState(false);
     const [usernameError, setUsernameError] = useState(false);
-
-    const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-        user: data.get('user'),
-        room: data.get('room'),
-    });
-    };
 
     return (
     <Container component="main" maxWidth="xs">
@@ -40,7 +29,7 @@ export default function ConnectScreen() {
             <Typography component="h1" variant="h5">
             Connect to room
             </Typography>
-            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+            <Box component="form" noValidate sx={{ mt: 1 }}>
                 <TextField
                     error ={usernameError}
                     helperText={usernameError ? "Error. Too short username" : ""}
