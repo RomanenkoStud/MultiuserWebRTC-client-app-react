@@ -35,6 +35,7 @@ const AfterCallView = ({handleReturn, onRating}) => {
                         defaultRating={defaultRating}
                         value={rating}
                         handleRating={handleRating}
+                        iconSize={"3rem"}
                     />
                 </Box>
                 </Grid>

@@ -5,24 +5,20 @@ import {
     TextField, 
     Box, 
     Typography, 
-    Container
+    Container,
 } from '@mui/material';
-import { useLogoAnimation } from "../hooks/useLogoAnimation";
+import RequestStatus from "../components/RequestStatus";
 
 
-export default function ConnectView({user}) {
+export default function ConnectView({user, handleConnect}) {
     const [room, setRoom] = useState("");
     const [username, setUsername] = useState(user ? user.username : "");
-    const [roomError, setRoomError] = useState(false);
-    const [usernameError, setUsernameError] = useState(false);
-
-    const { navigate } = useLogoAnimation();
+    const [error, setError] = useState({username: false, room: false});
+    const [message, setMessage] = useState({message: "", successful: false, loading: false});
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        if(!roomError && !usernameError) {
-            navigate(`/call/${username}/${room}`);
-        }
+        handleConnect(username, room, setError, setMessage);
     };
 
     return (
@@ -41,8 +37,8 @@ export default function ConnectView({user}) {
             </Typography>
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
                 <TextField
-                    error ={usernameError}
-                    helperText={usernameError ? "Error. Too short username" : ""}
+                    error ={error.username}
+                    helperText={error.username ? "Error. Too short username" : ""}
                     margin="normal"
                     required
                     fullWidth
@@ -55,13 +51,12 @@ export default function ConnectView({user}) {
                     InputProps={{ readOnly: user }}
                     onInput={(e) => {
                             setUsername(e.target.value)
-                            setUsernameError(username.length >= 8 ? false : true)
                         }
                     }
                 />
                 <TextField
-                    error ={roomError}
-                    helperText={roomError ? "Error. Too short room name" : ""}
+                    error ={error.room}
+                    helperText={error.room ? "Error. Too short room name" : ""}
                     margin="normal"
                     required
                     fullWidth
@@ -71,7 +66,6 @@ export default function ConnectView({user}) {
                     id="room"
                     onInput={(e) => {
                             setRoom(e.target.value)
-                            setRoomError(room.length >= 8 ? false : true )
                         }
                     }
                 />
@@ -80,10 +74,10 @@ export default function ConnectView({user}) {
                     fullWidth
                     variant="contained"
                     sx={{ mt: 3, mb: 2 }}
-                    disabled={usernameError||roomError}
                 >
                     Connect
                 </Button>
+                <RequestStatus message={message}/>
             </Box>
         </Box>
     </Container>

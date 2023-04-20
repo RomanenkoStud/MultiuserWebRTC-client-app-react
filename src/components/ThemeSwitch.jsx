@@ -5,10 +5,13 @@ import { changeTheme } from '../store/slices/settingsSlice';
 
 const StyledSwitch = styled(Switch)(({ theme }) => ({
     "& .MuiSwitch-thumb": {
-        backgroundColor: theme.palette.mode === "dark" ? "#9ea7aa" : "#bcc3c5",
+        backgroundColor: theme.palette.mode === "dark" ? "#fff" : "#bcc3c5",
     },
     "& .MuiSwitch-track": {
         backgroundColor: theme.palette.mode === "dark" ? "#fff" : "#000",
+    },
+    "& .MuiSwitch-root": {
+        backgroundColor: theme.palette.mode === "dark" ? "#fff" : "#bdbdbd",
     },
 }));
 
@@ -23,7 +26,7 @@ export default function ThemeSwitch() {
             checked={theme === 'dark'}
             onChange={handleThemeChange}
             name="theme"
-            color="primary"
+            color="default"
         />
     );
 }

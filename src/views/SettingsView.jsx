@@ -9,11 +9,7 @@ import {
     Divider,
 } from '@mui/material';
 
-export default function SettingsView({settings, handleConfig, handleTheme}) {
-
-    const handleThemeChange = (event) => {
-        handleTheme(event.target.checked ? 'dark' : 'light');
-    };
+export default function SettingsView({settings, handleConfig}) {
 
     const handleConfigChange = (event) => {
         const { name, checked } = event.target;
@@ -28,24 +24,6 @@ export default function SettingsView({settings, handleConfig, handleTheme}) {
                 Settings
             </Typography>
             <Divider />
-            <Box mt={2}>
-            <Typography variant="h6" component="h2">
-                Theme
-            </Typography>
-            <FormGroup>
-                <FormControlLabel
-                control={
-                    <Switch
-                    checked={settings.theme === 'dark'}
-                    onChange={handleThemeChange}
-                    name="theme"
-                    color="primary"
-                    />
-                }
-                label="Dark mode"
-                />
-            </FormGroup>
-            </Box>
             <Divider />
             <Box mt={2}>
             <Typography variant="h6" component="h2">

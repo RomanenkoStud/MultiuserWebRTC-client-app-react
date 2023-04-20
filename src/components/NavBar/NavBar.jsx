@@ -13,6 +13,7 @@ import {
     ListItemIcon, 
     ListItemText, 
     ListItemButton,
+    Typography,
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -208,6 +209,16 @@ export default function NavBar() {
             onClose={toggleDrawer(false)}
             >
                 {renderDrawerItems}
+                <Box 
+                sx={{
+                    display: { xs: 'flex', md: 'none' },
+                    alignItems: 'center',
+                    position: 'fixed',
+                    bottom: 20,
+                }}>
+                    <ThemeSwitch/>
+                    <Typography>Dark mode</Typography>
+                </Box>
             </Drawer>
             <LinkWithLogoAnimation to={"/"} style={{ textDecoration: 'none' }}>
             <RoomConnectIcon 
@@ -216,8 +227,8 @@ export default function NavBar() {
             />
             </LinkWithLogoAnimation>
             <Box sx={{ flexGrow: 1 }} />
-            <ThemeSwitch/>
-            <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center'  }}>
+                <ThemeSwitch/>
                 {isLoggedIn ? (
                     <IconButton
                     size="large"

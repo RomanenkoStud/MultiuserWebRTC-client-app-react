@@ -349,7 +349,7 @@ const HomeView = () => {
         <Grid container spacing={3} sx={{ marginBottom: 10 }}>
             <Grid item xs={12} sm={12} md={6}>
             <Zoom in={true} timeout={2000}>
-                <img src="/images/videoCallDemo1.jpg" alt="Video icon" style={{ width: '100%' }} />
+                <img src="/images/videoCallDemo1.jpg" alt="Video icon" style={{ width: '100%', filter: theme.palette.mode === 'dark' ? 'brightness(75%)' : 'none' }} />
             </Zoom>
             </Grid>
             <Grid item xs={12} sm={12} md={6}>
@@ -367,12 +367,12 @@ const HomeView = () => {
                 </Description>
             </Fade>
             <Box  sx={matchesMd && {display: 'flex', justifyContent: 'center'}}>
-                <LinkWithLogoAnimation to={'/create'} style={{ textDecoration: 'none' }}>
+                <LinkWithLogoAnimation to={'/rooms/create'} style={{ textDecoration: 'none' }}>
                 <ActionButton variant="contained" color="primary">
                     Create Room
                 </ActionButton>
                 </LinkWithLogoAnimation>
-                <LinkWithLogoAnimation to={'/connect'} style={{ textDecoration: 'none'}}>
+                <LinkWithLogoAnimation to={'/rooms/connect'} style={{ textDecoration: 'none'}}>
                 <ActionButton variant="outlined" color="primary">
                     Join Room
                 </ActionButton>

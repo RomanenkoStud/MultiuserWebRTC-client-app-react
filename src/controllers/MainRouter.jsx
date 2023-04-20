@@ -5,7 +5,6 @@ import SettingsController from "./SettingsController";
 import RoomController from "./RoomController";
 import LoginView from "../views/LoginView";
 import HomeView from "../views/HomeView";
-import InviteView from "../views/InviteView";
 import NotFoundView from "../views/NotFoundView";
 import NavBar from "../components/NavBar/NavBar";
 
@@ -16,7 +15,6 @@ function MainRouter() {
             <Routes>
                 <Route path="/" element={<HomeView />} />
                 <Route path="/call/:username/:room/*" element={<CallsController />} />
-                <Route path="/invite/:room" element={<InviteView />} />
                 <Route path="/user/*" element={<UserController />} />
                 <Route path="/rooms/*" element={<RoomController />} />
                 <Route path="/settings/" element={<SettingsController />} />

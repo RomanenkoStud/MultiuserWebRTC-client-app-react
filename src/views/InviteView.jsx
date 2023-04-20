@@ -1,31 +1,26 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useLogoAnimation } from "../hooks/useLogoAnimation";
 import {
     Button,
     CssBaseline,
     TextField,
     Box,
     Typography,
-    Container
+    Container,
 } from '@mui/material';
-import { useSelector } from "react-redux";
+import RequestStatus from "../components/RequestStatus";
 
 
-export default function InviteView() {
-    const user = useSelector((state) => state.auth.user);
-    const [username, setUsername] = useState("");
-    const [usernameError, setUsernameError] = useState(false);
+export default function InviteView({user, handleConnect}) {
+    const [username, setUsername] = useState(user ? user.username : "");
+    const [error, setError] = useState({username: false});
+    const [message, setMessage] = useState({message: "", successful: false, loading: false});
     const params = useParams();
     const room = params.room;
 
-    const { navigate } = useLogoAnimation();
-
     const handleSubmit = (event) => {
         event.preventDefault();
-        if(!usernameError) {
-            navigate(`/call/${username}/${room}`);
-        }
+        handleConnect(username, room, setError, setMessage);
     };
 
     return (
@@ -44,8 +39,8 @@ export default function InviteView() {
             </Typography>
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
                 <TextField
-                    error ={usernameError}
-                    helperText={usernameError ? "Error. Too short username" : ""}
+                    error ={error.username}
+                    helperText={error.username ? "Error. Too short username" : ""}
                     margin="normal"
                     required
                     fullWidth
@@ -54,10 +49,10 @@ export default function InviteView() {
                     label="User"
                     name="user"
                     autoFocus
+                    value={username}
                     InputProps={{ readOnly: user }}
                     onInput={(e) => {
                             setUsername(e.target.value)
-                            setUsernameError(username.length >= 8 ? false : true)
                         }
                     }
                 />
@@ -66,10 +61,10 @@ export default function InviteView() {
                     fullWidth
                     variant="contained"
                     sx={{ mt: 3, mb: 2 }}
-                    disabled={usernameError}
                 >
                     Connect
                 </Button>
+                <RequestStatus message={message}/>
             </Box>
         </Box>
     </Container>

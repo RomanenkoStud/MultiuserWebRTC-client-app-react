@@ -37,27 +37,35 @@ const customIcons = {
     },
 };
 
-function IconContainer(props) {
-    const { value, ...other } = props;
-    return <span {...other}>{customIcons[value].icon}</span>;
+function IconContainer({ value, iconSize, ...other }) {
+    const { icon } = customIcons[value];
+    return (
+        <span
+            style={{ fontSize: iconSize }}
+            {...other}
+        >
+            {React.cloneElement(icon, { fontSize: 'inherit' })}
+        </span>
+        );
 }
 
 IconContainer.propTypes = {
-    value: PropTypes.number.isRequired,
+value: PropTypes.number.isRequired,
+iconSize: PropTypes.string.isRequired,
 };
 
-export default function RadioGroupRating({defaultRating, rating, handleRating}) {
-    return (
-        <StyledRating
-            name="highlight-selected-only"
-            defaultValue={defaultRating}
-            IconContainerComponent={IconContainer}
-            getLabelText={(value) => customIcons[value].label}
-            highlightSelectedOnly
-            value={rating}
-            onChange={(event, newValue) => {
-                handleRating(newValue);
-            }}
-        />
-    );
+export default function RadioGroupRating({ defaultRating, rating, handleRating, iconSize }) {
+return (
+    <StyledRating
+    name="highlight-selected-only"
+    defaultValue={defaultRating}
+    IconContainerComponent={(props) => <IconContainer {...props} iconSize={iconSize} />}
+    getLabelText={(value) => customIcons[value].label}
+    highlightSelectedOnly
+    value={rating}
+    onChange={(event, newValue) => {
+        handleRating(newValue);
+    }}
+    />
+);
 }
