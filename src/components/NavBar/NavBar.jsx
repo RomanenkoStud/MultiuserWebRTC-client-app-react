@@ -12,7 +12,7 @@ import {
     ListItem, 
     ListItemIcon, 
     ListItemText, 
-    ListItemButton
+    ListItemButton,
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -31,7 +31,7 @@ import { LogoAnimationContext } from './LogoAnimationContext';
 import { useLogoAnimation } from '../../hooks/useLogoAnimation';
 import LinkWithLogoAnimation from "./LinkWithLogoAnimation";
 import { useAuth } from "../../hooks/useAuth";
-
+import ThemeSwitch from "../ThemeSwitch";
 
 export default function NavBar() {
     const { isLoggedIn, handleLogout } = useAuth();
@@ -216,6 +216,7 @@ export default function NavBar() {
             />
             </LinkWithLogoAnimation>
             <Box sx={{ flexGrow: 1 }} />
+            <ThemeSwitch/>
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
                 {isLoggedIn ? (
                     <IconButton

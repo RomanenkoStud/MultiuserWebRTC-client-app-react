@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import LinkWithLogoAnimation from "../components/NavBar/LinkWithLogoAnimation";
+import { useLogoAnimation } from "../hooks/useLogoAnimation";
 import {
     Button,
     CssBaseline,
@@ -9,20 +9,23 @@ import {
     Typography,
     Container
 } from '@mui/material';
+import { useSelector } from "react-redux";
+
 
 export default function InviteView() {
+    const user = useSelector((state) => state.auth.user);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
     const params = useParams();
     const room = params.room;
 
+    const { navigate } = useLogoAnimation();
+
     const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-        user: data.get('user'),
-        room: data.get('room'),
-    });
+        event.preventDefault();
+        if(!usernameError) {
+            navigate(`/call/${username}/${room}`);
+        }
     };
 
     return (
@@ -51,22 +54,22 @@ export default function InviteView() {
                     label="User"
                     name="user"
                     autoFocus
+                    InputProps={{ readOnly: user }}
                     onInput={(e) => {
                             setUsername(e.target.value)
                             setUsernameError(username.length >= 8 ? false : true)
                         }
                     }
                 />
-                <LinkWithLogoAnimation to={`/call/${username}/${room}`} style={{ textDecoration: 'none' }}>
-                    <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        sx={{ mt: 3, mb: 2 }}
-                    >
-                        Connect
-                    </Button>
-                </LinkWithLogoAnimation>
+                <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    sx={{ mt: 3, mb: 2 }}
+                    disabled={usernameError}
+                >
+                    Connect
+                </Button>
             </Box>
         </Box>
     </Container>

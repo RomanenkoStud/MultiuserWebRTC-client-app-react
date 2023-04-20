@@ -1,14 +1,11 @@
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import ProfileView from "../views/ProfileView";
 import RegisterView from "../views/RegisterView";
 import { useSelector } from "react-redux";
 import isEmail from 'validator/lib/isEmail';
 import userService from "../services/user.service";
+import PrivateRoute from "../components/PrivateRoute";
 
-function PrivateRoute({ component: Component, ...props }) {
-    const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
-    return isLoggedIn ? <Component {...props} /> : <Navigate to="/login" replace={true} />;
-}
 
 const UserController = () => {
     const user = useSelector((state) => state.auth.user);

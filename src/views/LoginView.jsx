@@ -66,6 +66,7 @@ export default function LoginView() {
                             setEmail(input)
                         }
                     }
+                    sx={{transform: "translateZ(0)"}}
                 />
                 <TextField
                     error ={passwordError}
@@ -84,6 +85,7 @@ export default function LoginView() {
                             setPassword(input)
                         }
                     }
+                    sx={{transform: "translateZ(0)"}}
                 />
                 <Button
                         type="submit"

@@ -1,13 +1,10 @@
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import CreateRoomView from "../views/CreateRoomView";
 import SearchView from "../views/SearchView";
 import ConnectView from "../views/ConnectView";
 import { useSelector } from "react-redux";
+import PrivateRoute from "../components/PrivateRoute";
 
-function PrivateRoute({ component: Component, ...props }) {
-    const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
-    return isLoggedIn ? <Component {...props} /> : <Navigate to="/login" replace={true} />;
-}
 
 const RoomController = () => {
     const user = useSelector((state) => state.auth.user);

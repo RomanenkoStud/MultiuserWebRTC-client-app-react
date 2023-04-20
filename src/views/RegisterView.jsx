@@ -61,6 +61,7 @@ export default function RegisterView({handleRegister}) {
                             setUsername(input)
                         }
                     }
+                    sx={{transform: "translateZ(0)"}}
                 />
                 <TextField
                     error ={emailError}
@@ -78,6 +79,7 @@ export default function RegisterView({handleRegister}) {
                             setEmail(input)
                         }
                     }
+                    sx={{transform: "translateZ(0)"}}
                 />
                 <TextField
                     error ={passwordError}
@@ -96,6 +98,7 @@ export default function RegisterView({handleRegister}) {
                             setPassword(input)
                         }
                     }
+                    sx={{transform: "translateZ(0)"}}
                 />
                 <Button
                         type="submit"

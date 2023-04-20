@@ -1,5 +1,4 @@
 import { useState } from "react";
-import LinkWithLogoAnimation from "../components/NavBar/LinkWithLogoAnimation";
 import {
     Button, 
     CssBaseline, 
@@ -8,12 +7,23 @@ import {
     Typography, 
     Container
 } from '@mui/material';
+import { useLogoAnimation } from "../hooks/useLogoAnimation";
+
 
 export default function ConnectView({user}) {
     const [room, setRoom] = useState("");
     const [username, setUsername] = useState(user ? user.username : "");
     const [roomError, setRoomError] = useState(false);
     const [usernameError, setUsernameError] = useState(false);
+
+    const { navigate } = useLogoAnimation();
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if(!roomError && !usernameError) {
+            navigate(`/call/${username}/${room}`);
+        }
+    };
 
     return (
     <Container component="main" maxWidth="xs">
@@ -29,7 +39,7 @@ export default function ConnectView({user}) {
             <Typography component="h1" variant="h5">
             Connect to room
             </Typography>
-            <Box component="form" noValidate sx={{ mt: 1 }}>
+            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
                 <TextField
                     error ={usernameError}
                     helperText={usernameError ? "Error. Too short username" : ""}
@@ -65,16 +75,15 @@ export default function ConnectView({user}) {
                         }
                     }
                 />
-                <LinkWithLogoAnimation to={`/call/${username}/${room}`} style={{ textDecoration: 'none' }}>
-                    <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        sx={{ mt: 3, mb: 2 }}
-                    >
-                        Connect
-                    </Button>
-                </LinkWithLogoAnimation>
+                <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    sx={{ mt: 3, mb: 2 }}
+                    disabled={usernameError||roomError}
+                >
+                    Connect
+                </Button>
             </Box>
         </Box>
     </Container>
