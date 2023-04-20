@@ -20,8 +20,21 @@ import {
     Drawer,
     IconButton 
 } from "@mui/material";
+import { 
+    List, 
+    ListItem, 
+    ListItemAvatar, 
+    ListItemText, 
+    ListItemIcon, 
+    ListItemButton,
+    ToggleButtonGroup,
+    ToggleButton
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
+import { MoreVert as MoreVertIcon } from '@mui/icons-material';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
 
 const rooms = [
     { roomname: "room1", maxUsers: 4, date: "2023-04-02", isPrivate: false, users: ["Tom", "Ben", "Joe"] },
@@ -186,12 +199,65 @@ const RoomsGrid = ({rooms}) => {
     );
 }
 
+const RoomsList = ({ rooms }) => {
+    return (
+        <List sx={{ marginTop: 2 }}>
+            {rooms.map((room) => (
+            <ListItem key={room.roomname}>
+                <ListItemButton>
+                    <ListItemAvatar>
+                    {room.users? (
+                        <Avatar key={room.users[0]} alt={room.users[0]} src={`https://picsum.photos/seed/${room.users[0]}/64`} />
+                    ):(
+                        <Avatar>{room.roomname.charAt(0).toUpperCase()}</Avatar>
+                    )}
+                    </ListItemAvatar>
+                    <ListItemText primary={room.roomname} secondary={`Max Users: ${room.maxUsers}`} />
+                    <ListItemIcon>
+                        <MoreVertIcon />
+                    </ListItemIcon>
+                </ListItemButton>
+            </ListItem>
+            ))}
+        </List>
+    );
+};
+
+const ViewToggle = ({ onViewChange }) => {
+    const [viewType, setViewType] = useState('grid');
+
+    const handleViewTypeChange = (event, newViewType) => {
+        if (newViewType !== null) {
+        setViewType(newViewType);
+        onViewChange(newViewType);
+        }
+    };
+
+    return (
+        <ToggleButtonGroup
+        value={viewType}
+        exclusive
+        onChange={handleViewTypeChange}
+        aria-label="View Type"
+        sx={{ mb: 2 }}
+        >
+        <ToggleButton value="list" aria-label="List View">
+            <ViewListIcon />
+        </ToggleButton>
+        <ToggleButton value="grid" aria-label="Grid View">
+            <ViewModuleIcon />
+        </ToggleButton>
+        </ToggleButtonGroup>
+    );
+};
+
 const SearchView = ({handleSearch}) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState(rooms);
     const [filters, setFilters] = useState([]);
     const [sortType, setSortType] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [viewType, setViewType] = useState('grid');
 
     const sort = (results) => {
         const sortedResults = results.slice();
@@ -313,7 +379,11 @@ const SearchView = ({handleSearch}) => {
                             <FilterChips filters={filters} setFilters={setFilters} clear/>
                         </Box>
                     }
-                    <RoomsGrid rooms={filter(sort(searchResults))}/>
+                    <Box sx={{ mt: 2 }}>
+                        <ViewToggle onViewChange={setViewType}/>
+                    </Box>
+                    {viewType==="grid" && <RoomsGrid rooms={filter(sort(searchResults))}/>}
+                    {viewType==="list" && <RoomsList rooms={filter(sort(searchResults))}/>}
                 </Grid>
                 <Grid item xs={12} sm={4} md={4} sx={{ display: { xs: 'none', sm: 'block' } }}>
                     <Sorting sortType={sortType} setSortType={setSortType}/>
