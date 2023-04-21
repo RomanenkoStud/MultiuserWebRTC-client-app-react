@@ -11,7 +11,7 @@ import {
     Tooltip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-
+import ImageModal from "../components/ImageModal";
 
 const ProfileView = ({user}) => {
     const [username, setUsername] = useState(user.username);
@@ -19,6 +19,7 @@ const ProfileView = ({user}) => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [status, setStatus] = useState('Online');
+    const [open, setOpen] = useState(false);
     const [image, setImage] = useState('');
 
     const handleUsernameChange = (e) => {
@@ -41,10 +42,6 @@ const ProfileView = ({user}) => {
         setStatus(e.target.value);
     };
 
-    const handleImageChange = (e) => {
-        setImage(URL.createObjectURL(e.target.files[0]));
-    };
-
     const getUsernameInitials = (name) => {
         const initials = name.match(/\b\w/g) || [];
         return ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
@@ -55,7 +52,8 @@ const ProfileView = ({user}) => {
         <CssBaseline />
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
                 <Avatar
-                sx={{ width: 100, height: 100, position: 'relative', overflow: 'hidden' }}
+                    sx={{ width: 100, height: 100, position: 'relative', overflow: 'hidden' }}
+                    image={image}
                 >
                     {image ? (
                         <img src={image} alt="Profile"
@@ -81,19 +79,10 @@ const ProfileView = ({user}) => {
                         }}
                     >
                         <Tooltip title="Change profile picture">
-                            <label htmlFor="upload-image">
-                                <IconButton component="span">
+                                <IconButton component="span" onClick={()=>setOpen(true)}>
                                 <EditIcon sx={{ fontSize: 14 }}/>
                                 </IconButton>
-                            </label>
-                            </Tooltip>
-                            <input
-                            id="upload-image"
-                            type="file"
-                            accept="image/*"
-                            style={{ display: 'none' }}
-                            onChange={handleImageChange}
-                            />
+                        </Tooltip>
                     </Box>
                 </Avatar>
                 <Typography component="h1" variant="h5" sx={{ mt: 2 }}>
@@ -164,6 +153,7 @@ const ProfileView = ({user}) => {
                     </Button>
                 </Box>
             </Box>
+            <ImageModal open={open} handleClose={()=>setOpen(false)} setImage={setImage}/>
         </Container>
     );
 };
