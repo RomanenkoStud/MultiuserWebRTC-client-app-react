@@ -25,16 +25,20 @@ import {
     ListItem, 
     ListItemAvatar, 
     ListItemText, 
-    ListItemIcon, 
     ListItemButton,
     ToggleButtonGroup,
-    ToggleButton
+    ToggleButton,
+    Collapse
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
-import { MoreVert as MoreVertIcon } from '@mui/icons-material';
+import DuoIcon from '@mui/icons-material/Duo';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import { useLogoAnimation } from "../hooks/useLogoAnimation";
+
 
 const rooms = [
     { roomname: "room1", maxUsers: 4, date: "2023-04-02", isPrivate: false, users: ["Tom", "Ben", "Joe"] },
@@ -163,6 +167,8 @@ const Sorting = ({sortType, setSortType}) => {
 }
 
 const RoomsGrid = ({rooms}) => {
+    const { navigate } = useLogoAnimation();
+
     return (
         <Grid container spacing={3} sx={{ marginTop: 2 }}>
             {rooms.map((room) => (
@@ -188,7 +194,9 @@ const RoomsGrid = ({rooms}) => {
                         </AvatarGroup>
                     </CardContent>
                     <CardActions>
-                        <Button  variant="outlined" color="primary">
+                        <Button  variant="outlined" color="primary" 
+                            onClick={()=>navigate(`/rooms/connect/${room.roomname}`)}
+                        >
                             Join
                         </Button>
                     </CardActions>
@@ -200,24 +208,54 @@ const RoomsGrid = ({rooms}) => {
 }
 
 const RoomsList = ({ rooms }) => {
+    const [selectedRoom, setSelectedRoom] = useState(null);
+    const { navigate } = useLogoAnimation();
+
+    const handleRoomClick = (room) => {
+        setSelectedRoom(selectedRoom === room ? null : room);
+    };
+
     return (
         <List sx={{ marginTop: 2 }}>
             {rooms.map((room) => (
-            <ListItem key={room.roomname}>
-                <ListItemButton>
+            <Box key={room.roomname}>
+                <ListItem
+                secondaryAction={
+                    <IconButton edge="end" aria-label="comments" 
+                        onClick={()=>navigate(`/rooms/connect/${room.roomname}`)}
+                    >
+                        <DuoIcon />
+                    </IconButton>
+                }
+                disablePadding
+                >
+                <ListItemButton onClick={() => handleRoomClick(room)}>
                     <ListItemAvatar>
-                    {room.users? (
-                        <Avatar key={room.users[0]} alt={room.users[0]} src={`https://picsum.photos/seed/${room.users[0]}/64`} />
-                    ):(
+                    {room.users ? (
+                        <Avatar
+                        key={room.users[0]}
+                        alt={room.users[0]}
+                        src={`https://picsum.photos/seed/${room.users[0]}/64`}
+                        />
+                    ) : (
                         <Avatar>{room.roomname.charAt(0).toUpperCase()}</Avatar>
                     )}
                     </ListItemAvatar>
-                    <ListItemText primary={room.roomname} secondary={`Max Users: ${room.maxUsers}`} />
-                    <ListItemIcon>
-                        <MoreVertIcon />
-                    </ListItemIcon>
+                    <ListItemText primary={room.roomname} secondary={
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                            {`Max Users: ${room.maxUsers}`}
+                        </Typography>} />
+                    {selectedRoom === room ? <ExpandLess /> : <ExpandMore />}
                 </ListItemButton>
-            </ListItem>
+                </ListItem>
+                <Collapse in={selectedRoom === room} timeout="auto" unmountOnExit>
+                    <Typography variant="body2" sx={{ pl: 10, color: 'text.secondary' }}>
+                            {`Date: ${room.date}`}
+                            <br/>
+                            {room.isPrivate ? "Private Room" : "Public Room"}
+                    </Typography>
+                </Collapse>
+            </Box>
             ))}
         </List>
     );

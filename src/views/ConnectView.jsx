@@ -8,10 +8,12 @@ import {
     Container,
 } from '@mui/material';
 import RequestStatus from "../components/RequestStatus";
+import { useParams } from "react-router-dom";
 
 
 export default function ConnectView({user, handleConnect}) {
-    const [room, setRoom] = useState("");
+    const params = useParams();
+    const [room, setRoom] = useState(params.room ? params.room : "");
     const [username, setUsername] = useState(user ? user.username : "");
     const [error, setError] = useState({username: false, room: false});
     const [message, setMessage] = useState({message: "", successful: false, loading: false});
@@ -64,6 +66,7 @@ export default function ConnectView({user, handleConnect}) {
                     label="Room"
                     type="text"
                     id="room"
+                    value={room}
                     onInput={(e) => {
                             setRoom(e.target.value)
                         }

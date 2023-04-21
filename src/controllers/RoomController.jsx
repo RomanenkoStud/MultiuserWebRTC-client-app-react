@@ -29,7 +29,7 @@ const RoomController = () => {
             <Route path="/create" element={
                 <PrivateRoute component={CreateRoomView} handleCreate={handleCreate}/>
             } />
-            <Route path="/connect" element={<ConnectView user={user} handleConnect={handleConnect}/>} />
+            <Route path="/connect/:room" element={<ConnectView user={user} handleConnect={handleConnect}/>} />
             <Route path="/invite/:room" element={<InviteView user={user} handleConnect={handleConnect}/>} />
         </Routes>
     );
