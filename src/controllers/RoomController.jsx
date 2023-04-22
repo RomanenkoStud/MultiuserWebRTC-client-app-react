@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Route, Routes } from 'react-router-dom';
 import CreateRoomView from "../views/CreateRoomView";
 import SearchView from "../views/SearchView";
@@ -10,8 +11,13 @@ import roomService from "../services/room.service";
 
 
 const RoomController = () => {
+    const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
     const user = useSelector((state) => state.auth.user);
     const { navigate } = useLogoAnimation();
+    const [searchRooms, setSearchRooms] = useState([]);
+    const [userRooms, setUserRooms] = useState([]);
+    const [searchLoading, setSearchLoading] = useState(true);
+    const [userLoading, setUserLoading] = useState(true);
 
     const handleCreate = (room, setError, setMessage) => {
         const roomError = room.roomName.length >= 8 ? false : true;
@@ -43,9 +49,9 @@ const RoomController = () => {
         );
     };
 
-    const handleGetUserRooms = (setRooms, setLoading) => {
+    const handleGetUserRooms = (currentUser, setRooms, setLoading) => {
         setLoading(true);
-        roomService.getUserRooms(user.id, user.token).then(
+        roomService.getUserRooms(currentUser.id, currentUser.token).then(
             (response) => {
                 setRooms(response);
                 setLoading(false);
@@ -85,11 +91,16 @@ const RoomController = () => {
         }
     };
 
+    useEffect(() => {
+        handleGetRooms(setSearchRooms, setSearchLoading);
+        isLoggedIn && handleGetUserRooms(user, setUserRooms, setUserLoading);
+    }, [isLoggedIn, user]);
+
     return (
         <Routes>
-            <Route path="/" element={<SearchView handleGetRooms={handleGetRooms}/>} />
+            <Route path="/" element={<SearchView rooms={searchRooms} loading={searchLoading}/>} />
             <Route path="/user" element={
-                <PrivateRoute component={SearchView} handleGetRooms={handleGetUserRooms} handleDelete={handleDelete}/>
+                <PrivateRoute component={SearchView} rooms={userRooms} loading={userLoading} handleDelete={handleDelete}/>
             } />
             <Route path="/create" element={
                 <PrivateRoute component={CreateRoomView} handleCreate={handleCreate}/>

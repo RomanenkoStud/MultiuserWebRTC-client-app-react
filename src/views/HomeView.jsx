@@ -26,6 +26,7 @@ import { useTheme } from '@mui/material/styles';
 import { useState, useRef, useEffect } from 'react';
 import { useSpring, useTrail, animated } from 'react-spring';
 import Carousel from "react-material-ui-carousel";
+import version from "../version";
 
 const HomeContainer = styled(Container)({
     marginTop: '4rem',
@@ -320,7 +321,7 @@ const Footer = () => {
             </Typography>
         </Box>
         <Typography variant="caption" color="textSecondary">
-            © 2023 RoomConnect
+            © 2023 RoomConnect | Version {version}
         </Typography>
     </Box>
     );

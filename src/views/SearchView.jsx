@@ -296,9 +296,7 @@ const ViewToggle = ({ onViewChange }) => {
     );
 };
 
-const SearchView = ({handleGetRooms, handleDelete}) => {
-    const [rooms, setRooms] = useState([]);
-    const [loading, setLoading] = useState(true);
+const SearchView = ({rooms, loading, handleDelete}) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [filters, setFilters] = useState([]);
@@ -307,12 +305,8 @@ const SearchView = ({handleGetRooms, handleDelete}) => {
     const [viewType, setViewType] = useState('grid');
 
     useEffect(() => {
-        const init = (result) => {
-            setRooms(result);
-            setSearchResults(result);
-        }
-        handleGetRooms(init, setLoading);
-    }, [handleGetRooms]);
+        setSearchResults(rooms);
+    }, [rooms]);
 
     const sort = (results) => {
         const sortedResults = results.slice();

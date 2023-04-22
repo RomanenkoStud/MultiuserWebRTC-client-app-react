@@ -47,7 +47,8 @@ const UserController = () => {
                     }
                 );
         };
-        };
+    };
+    
     return (
         <Routes>
             <Route path="/" element={<PrivateRoute component={ProfileView} user={user}/>} />
