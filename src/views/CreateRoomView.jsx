@@ -12,12 +12,15 @@ import {
     TextField, 
     Typography 
 } from '@mui/material';
+import RequestStatus from "../components/RequestStatus";
 
 const CreateRoomView = ({handleCreate}) => {
     const [roomName, setRoomName] = useState('');
     const [roomType, setRoomType] = useState('public');
     const [roomPassword, setRoomPassword] = useState('');
     const [maxUsers, setMaxUsers] = useState('');
+    const [error, setError] = useState(false);
+    const [message, setMessage] = useState({message: "", successfull: false, loading: false});
 
     const handleRoomNameChange = (event) => {
         setRoomName(event.target.value);
@@ -38,7 +41,12 @@ const CreateRoomView = ({handleCreate}) => {
     const handleSubmit = (event) => {
         event.preventDefault();
         // handle form submission
-        handleCreate();
+        handleCreate({
+            roomName: roomName, 
+            isPrivate: roomType === 'private',
+            maxUsers: maxUsers,
+            password: roomPassword
+        }, setError, setMessage);
     };
 
     return (
@@ -50,6 +58,8 @@ const CreateRoomView = ({handleCreate}) => {
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
                 <TextField
+                    error ={error}
+                    helperText={error ? "Error. Too short room name" : ""}
                     margin="normal"
                     required
                     fullWidth
@@ -95,6 +105,7 @@ const CreateRoomView = ({handleCreate}) => {
                 <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
                     Create Room
                 </Button>
+                <RequestStatus message={message}/>
                 </Box>
             </Box>
         </Container>

@@ -16,7 +16,7 @@ export default function ConnectView({user, handleConnect}) {
     const [room, setRoom] = useState(params.room ? params.room : "");
     const [username, setUsername] = useState(user ? user.username : "");
     const [error, setError] = useState({username: false, room: false});
-    const [message, setMessage] = useState({message: "", successful: false, loading: false});
+    const [message, setMessage] = useState({message: "", successfull: false, loading: false});
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -50,7 +50,7 @@ export default function ConnectView({user, handleConnect}) {
                     name="user"
                     autoFocus
                     value={username}
-                    InputProps={{ readOnly: user }}
+                    InputProps={{ readOnly: user ? true : false }}
                     onInput={(e) => {
                             setUsername(e.target.value)
                         }

@@ -7,18 +7,29 @@ import PreviewView from "../views/PreviewView";
 import AfterCallView from "../views/AfterCallView";
 import { useDispatch, useSelector } from "react-redux";
 import { changeConfig } from "../store/slices/settingsSlice";
+import roomService from "../services/room.service";
 
 export default function CallsController() {
   const params = useParams();
   const username = params.username;
-  const room = params.room;
+  const roomId = params.room;
   const { navigate } = useLogoAnimation();
   const [inCall, setInCall] = useState(false);
   const settings = useSelector((state) => state.settings.config);
   const dispatch = useDispatch();
 
-  const onStart = () => {
-    setInCall(true);
+  const onStart = (setMessage) => {
+    roomService.join(username, roomId).then(
+      (response) => {
+          setMessage({message: "Successful", successful: true, loading: false});
+          setTimeout(() => {
+            setInCall(true);
+          }, 1000); // 3 second message delay
+      },
+      (error) => {
+          setMessage({message: error, successful: false, loading: false});
+      }
+    );
   }
 
   const onSettings = (name, checked) => {
@@ -26,16 +37,23 @@ export default function CallsController() {
   }
 
   const onEnd = () => {
-    setInCall(false);
-    navigate(`/call/${username}/${room}/rate`);
+    roomService.leave(username, roomId).then(
+      (response) => {
+        setInCall(false);
+        navigate(`/call/${username}/${roomId}/rate`);
+      },
+      (error) => {
+
+      }
+    );
   }
 
   const onReturn = () => {
-    navigate(`/call/${username}/${room}`);
+    navigate(`/call/${username}/${roomId}`);
   }
 
   const CallView = inCall ? (
-        <InCallView username={username} room={room} settings={settings} onEnd={onEnd}/>
+        <InCallView username={username} room={roomId} settings={settings} onEnd={onEnd}/>
       ) : (
         <PreviewView settings={settings} onSettings={onSettings} onStart={onStart}/>
       );

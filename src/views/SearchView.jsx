@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
     CssBaseline, 
     CardActions, 
@@ -28,7 +28,8 @@ import {
     ListItemButton,
     ToggleButtonGroup,
     ToggleButton,
-    Collapse
+    Collapse,
+    CircularProgress 
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
@@ -37,15 +38,9 @@ import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useLogoAnimation } from "../hooks/useLogoAnimation";
 
-
-const rooms = [
-    { roomname: "room1", maxUsers: 4, date: "2023-04-02", isPrivate: false, users: ["Tom", "Ben", "Joe"] },
-    { roomname: "room3", maxUsers: 3, date: "2023-04-04", isPrivate: false, users: ["Alex", "Ben"] },
-    { roomname: "room2", maxUsers: 2, date: "2023-04-03", isPrivate: true, users: ["Monica", "Ross"] },
-    { roomname: "room4", maxUsers: 4, date: "2023-04-05", isPrivate: true, users: ["Sam"] },
-];
 
 const FilterChips = ({filters, setFilters, clear}) => {
     const handleFilterDelete = (filterToDelete) => {
@@ -166,13 +161,13 @@ const Sorting = ({sortType, setSortType}) => {
     );
 }
 
-const RoomsGrid = ({rooms}) => {
+const RoomsGrid = ({rooms, handleDelete}) => {
     const { navigate } = useLogoAnimation();
 
     return (
         <Grid container spacing={3} sx={{ marginTop: 2 }}>
             {rooms.map((room) => (
-                <Grid item xs={12} md={6} lg={4} key={room.roomname}>
+                <Grid item xs={12} md={6} lg={4} key={room.id}>
                     <Card variant="outlined">
                     <CardContent>
                         <Typography variant="h6" gutterBottom>
@@ -199,6 +194,11 @@ const RoomsGrid = ({rooms}) => {
                         >
                             Join
                         </Button>
+                        {handleDelete && (<Button  variant="outlined" color="primary" 
+                            onClick={()=>handleDelete(room.id)}
+                        >
+                            Delete
+                        </Button>)}
                     </CardActions>
                     </Card>
                 </Grid>
@@ -207,7 +207,7 @@ const RoomsGrid = ({rooms}) => {
     );
 }
 
-const RoomsList = ({ rooms }) => {
+const RoomsList = ({ rooms, handleDelete }) => {
     const [selectedRoom, setSelectedRoom] = useState(null);
     const { navigate } = useLogoAnimation();
 
@@ -218,7 +218,7 @@ const RoomsList = ({ rooms }) => {
     return (
         <List sx={{ marginTop: 2 }}>
             {rooms.map((room) => (
-            <Box key={room.roomname}>
+            <Box key={room.id}>
                 <ListItem
                 secondaryAction={
                     <IconButton edge="end" aria-label="comments" 
@@ -246,6 +246,13 @@ const RoomsList = ({ rooms }) => {
                             {`Max Users: ${room.maxUsers}`}
                         </Typography>} />
                     {selectedRoom === room ? <ExpandLess /> : <ExpandMore />}
+                    {handleDelete && (
+                        <IconButton edge="end" aria-label="comments" 
+                            onClick={()=>handleDelete(room.id)}
+                        >
+                            <DeleteOutlineIcon />
+                        </IconButton>
+                    )}
                 </ListItemButton>
                 </ListItem>
                 <Collapse in={selectedRoom === room} timeout="auto" unmountOnExit>
@@ -289,13 +296,23 @@ const ViewToggle = ({ onViewChange }) => {
     );
 };
 
-const SearchView = ({handleSearch}) => {
+const SearchView = ({handleGetRooms, handleDelete}) => {
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [searchResults, setSearchResults] = useState(rooms);
+    const [searchResults, setSearchResults] = useState([]);
     const [filters, setFilters] = useState([]);
     const [sortType, setSortType] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [viewType, setViewType] = useState('grid');
+
+    useEffect(() => {
+        const init = (result) => {
+            setRooms(result);
+            setSearchResults(result);
+        }
+        handleGetRooms(init, setLoading);
+    }, [handleGetRooms]);
 
     const sort = (results) => {
         const sortedResults = results.slice();
@@ -369,7 +386,6 @@ const SearchView = ({handleSearch}) => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        handleSearch();
         const results = rooms.filter((room) =>
         room.roomname.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -420,8 +436,13 @@ const SearchView = ({handleSearch}) => {
                     <Box sx={{ mt: 2 }}>
                         <ViewToggle onViewChange={setViewType}/>
                     </Box>
-                    {viewType==="grid" && <RoomsGrid rooms={filter(sort(searchResults))}/>}
-                    {viewType==="list" && <RoomsList rooms={filter(sort(searchResults))}/>}
+                    {loading && (
+                        <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+                            <CircularProgress />
+                        </Box>
+                    )}
+                    {!loading && viewType === 'grid' && <RoomsGrid rooms={filter(sort(searchResults))} handleDelete={handleDelete}/>}
+                    {!loading && viewType === 'list' && <RoomsList rooms={filter(sort(searchResults))} handleDelete={handleDelete}/>}
                 </Grid>
                 <Grid item xs={12} sm={4} md={4} sx={{ display: { xs: 'none', sm: 'block' } }}>
                     <Sorting sortType={sortType} setSortType={setSortType}/>

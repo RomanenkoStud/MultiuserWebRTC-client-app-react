@@ -16,6 +16,7 @@ import {
     Typography,
 } from '@mui/material';
 import {
+    Dashboard as DashboardIcon,
     Menu as MenuIcon,
     AccountCircle,
     Login as LoginIcon,
@@ -101,7 +102,10 @@ export default function NavBar() {
             </List>
             <Divider />
             <List>
-                {isLoggedIn && drawerItem("Create room", <VideocamOutlinedIcon/>, () => {navigate("/rooms/create")})}
+                {isLoggedIn && <> 
+                    {drawerItem("My rooms", <DashboardIcon/>, () => {navigate("/rooms/user")})}
+                    {drawerItem("Create room", <VideocamOutlinedIcon/>, () => {navigate("/rooms/create")})}
+                </>}
                 {drawerItem("Connect to room", <LinkIcon/>, () => {navigate("/rooms/connect")})}
                 {drawerItem("Settings", <TuneIcon/>, () => {navigate("/settings")})}
                 {isLoggedIn ? <>

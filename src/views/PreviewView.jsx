@@ -13,9 +13,10 @@ import {
     Camera, 
     CameraBlurBackground
 }  from "../components/UserMediaInputs/UserMediaInputs";
+import RequestStatus from "../components/RequestStatus";
 
 function PreviewView({settings, onSettings, onStart}) {
-
+const [message, setMessage] = useState({message: "", successfull: false, loading: false});
 const [stream, setStream] = useState(null);
 const latestStreamValue = useRef(null);
 const latestStreamPromise = useRef(null);
@@ -43,7 +44,7 @@ useEffect(() => {
 
 
 const handleStartCall = () => {
-    onStart();
+    onStart(setMessage);
 }
 
 const renderCamera = () => {
@@ -109,12 +110,17 @@ return (
             label="Background Blur"
             />
         </FormGroup>
-        <Button
-            onClick={handleStartCall}
-            variant="contained"
-        >
-            Start call
-        </Button>
+        {message.message ? (
+            <RequestStatus message={message}/>
+        ) : (
+            <Button
+                onClick={handleStartCall}
+                variant="contained"
+                sx={{ mb: 2 }}
+            >
+                Start call
+            </Button>
+        )}
     </Box>
     </Container>
 );
