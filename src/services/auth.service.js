@@ -1,12 +1,14 @@
 import axios from "axios";
-
-//const API_URL = "http://localhost:8080/api/v1/auth/";
-const API_URL = "https://server-app-spring.azurewebsites.net/api/v1/auth/";
+import HOST from './host';
 
 class AuthService {
-    login(email, password) {
+    constructor() {
+        this.apiUrl = HOST + '/api/v1/auth/';
+    }
+
+    login({email, password}) {
         return axios
-            .post(API_URL + "login", {
+            .post(this.apiUrl + "login", {
                 email,
                 password
             });
@@ -14,7 +16,7 @@ class AuthService {
     
         logout() {
             axios
-            .post(API_URL + "logout");
+            .post(this.apiUrl + "logout");
         }
 }
 

@@ -13,6 +13,7 @@ const AfterCallView = ({handleReturn, onRating}) => {
     const handleSubmit = () => {
         // Handle submitting the rating data
         // ...
+        onRating();
     };
 
     return (

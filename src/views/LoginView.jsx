@@ -14,10 +14,8 @@ import { useAuth } from "../hooks/useAuth";
 
 export default function LoginView() {
     const { handleLogin } = useAuth();
-    const [email, setEmail] = useState("");
-    const [emailError, setEmailError] = useState(false);
-    const [password, setPassword] = useState("");
-    const [passwordError, setPasswordError] = useState(false);
+    const [user, setUser] = useState({email: "", password: ""});
+    const [error, setError] = useState({email: false, password: false});
     const [message, setMessage] = useState({message: "", successful: false, loading: false});
     const { navigate } = useLogoAnimation();
 
@@ -31,7 +29,7 @@ export default function LoginView() {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        handleLogin(email, password, setEmailError, setPasswordError, setMessage);
+        handleLogin(user, setError, setMessage);
     };
 
     return (
@@ -50,8 +48,8 @@ export default function LoginView() {
             </Typography>
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
                 <TextField
-                    error ={emailError}
-                    helperText={emailError ? "Error. Input is not email" : ""}
+                    error ={error.email}
+                    helperText={error.email ? "Error. Input is not email" : ""}
                     margin="normal"
                     required
                     fullWidth
@@ -63,14 +61,14 @@ export default function LoginView() {
                     autoFocus
                     onInput={(e) => {
                             const input = e.target.value;
-                            setEmail(input)
+                            setUser({...user, email: input})
                         }
                     }
                     sx={{transform: "translateZ(0)"}}
                 />
                 <TextField
-                    error ={passwordError}
-                    helperText={passwordError ? "Error. Too short password" : ""}
+                    error ={error.password}
+                    helperText={error.password ? "Error. Too short password" : ""}
                     margin="normal"
                     required
                     fullWidth
@@ -82,7 +80,7 @@ export default function LoginView() {
                     autoFocus
                     onInput={(e) => {
                             const input = e.target.value;
-                            setPassword(input)
+                            setUser({...user, password: input})
                         }
                     }
                     sx={{transform: "translateZ(0)"}}

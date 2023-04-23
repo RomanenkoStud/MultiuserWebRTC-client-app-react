@@ -1,12 +1,27 @@
+import { useState, useEffect } from 'react';
 import { 
     Box, 
     Alert,
     CircularProgress
 } from '@mui/material';
 
-export default function RequestStatus({message, link}) {
+export default function RequestStatus({message, link, displayTime }) {
 
-    return (
+    const [displayed, setDisplayed] = useState(true);
+
+    useEffect(() => {
+        if(displayTime)
+        {
+            let timer;
+            setDisplayed(true);
+                timer = setTimeout(() => {
+                    setDisplayed(false);
+            }, displayTime);
+            return () => clearTimeout(timer);
+        }
+    }, [message, link, displayTime]);
+
+    return displayed && (
             message.loading ? (
                 <Box
                 sx={{

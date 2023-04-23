@@ -52,6 +52,10 @@ export default function CallsController() {
     navigate(`/call/${username}/${roomId}`);
   }
 
+  const onRating = () => {
+    
+  }
+
   const CallView = inCall ? (
         <InCallView username={username} room={roomId} settings={settings} onEnd={onEnd}/>
       ) : (
@@ -61,7 +65,7 @@ export default function CallsController() {
   return (
     <Routes>
         <Route path="/" element={CallView} />
-        <Route path="/rate" element={<AfterCallView handleReturn={onReturn} />} />
+        <Route path="/rate" element={<AfterCallView handleReturn={onReturn} onRating={onRating}/>} />
     </Routes>
 );
 }

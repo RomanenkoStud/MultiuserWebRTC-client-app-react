@@ -12,30 +12,37 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ImageModal from "../components/ImageModal";
+import DeleteDialog from "../components/DeleteDialog";
+import RequestStatus from "../components/RequestStatus";
 
-const ProfileView = ({user}) => {
-    const [username, setUsername] = useState(user.username);
-    const [email, setEmail] = useState(user.email);
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+const ProfileView = ({user, handleUpdate, handleDelete}) => {
+    const [userUpdated, setUserUpdated] = useState({
+        username: user.username,  
+        email: user.email, 
+        password: "", 
+        imageUrl: user.imageUrl,
+        confirmPassword: ""
+    });
+    const [error, setError] = useState({username: false, email: false, password: false, confirmPassword: false});
+    const [message, setMessage] = useState({message: "", successful: false, loading: false});
     const [status, setStatus] = useState('Online');
-    const [open, setOpen] = useState(false);
-    const [image, setImage] = useState('');
+    const [openImageDialog, setOpenImageDialog] = useState(false);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
     const handleUsernameChange = (e) => {
-        setUsername(e.target.value);
+        setUserUpdated({...userUpdated, username: e.target.value});
     };
 
     const handleEmailChange = (e) => {
-        setEmail(e.target.value);
+        setUserUpdated({...userUpdated, email: e.target.value});
     };
 
     const handlePasswordChange = (e) => {
-        setPassword(e.target.value);
+        setUserUpdated({...userUpdated, password: e.target.value});
     };
 
     const handleConfirmPasswordChange = (e) => {
-        setConfirmPassword(e.target.value);
+        setUserUpdated({...userUpdated, confirmPassword: e.target.value});
     };
 
     const handleStatusChange = (e) => {
@@ -47,23 +54,32 @@ const ProfileView = ({user}) => {
         return ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
     };
 
+    const handleImage = (url) => {
+        setUserUpdated({...userUpdated, imageUrl: url});
+    }
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        handleUpdate(userUpdated, setError, setMessage);
+    };
+
     return (
         <Container maxWidth="sm">
         <CssBaseline />
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4, mb: 2 }}>
                 <Avatar
                     sx={{ width: 100, height: 100, position: 'relative', overflow: 'hidden' }}
-                    image={image}
+                    image={userUpdated.imageUrl}
                 >
-                    {image ? (
-                        <img src={image} alt="Profile"
+                    {userUpdated.imageUrl ? (
+                        <img src={userUpdated.imageUrl} alt="Profile"
                         style={{
                             objectFit: 'cover',
                             width: '100%',
                             height: '100%',
                         }}/>
                     ) : (
-                        <>{getUsernameInitials(username)}</>
+                        <>{getUsernameInitials(userUpdated.username)}</>
                     )}
                     <Box
                         sx={{
@@ -79,7 +95,7 @@ const ProfileView = ({user}) => {
                         }}
                     >
                         <Tooltip title="Change profile picture">
-                                <IconButton component="span" onClick={()=>setOpen(true)}>
+                                <IconButton component="span" onClick={()=>setOpenImageDialog(true)}>
                                 <EditIcon sx={{ fontSize: 14 }}/>
                                 </IconButton>
                         </Tooltip>
@@ -88,29 +104,29 @@ const ProfileView = ({user}) => {
                 <Typography component="h1" variant="h5" sx={{ mt: 2 }}>
                     Profile
                 </Typography>
-                <Box component="form" sx={{ mt: 3 }}>
+                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, mb: 2 }}>
                     <TextField
+                        error ={error.username}
+                        helperText={error.username ? "Error. Too short username" : ""}
                         margin="normal"
                         required
                         fullWidth
                         id="username"
                         label="Username"
                         name="username"
-                        autoComplete="username"
-                        value={username}
-                        InputProps={{ readOnly: true }}
+                        value={userUpdated.username}
                         onChange={handleUsernameChange}
                     />
                     <TextField
+                        error ={error.email}
+                        helperText={error.email ? "Error. Input is not email" : ""}
                         margin="normal"
                         required
                         fullWidth
                         id="email"
                         label="Email"
                         name="email"
-                        autoComplete="email"
-                        value={email}
-                        InputProps={{ readOnly: true }}
+                        value={userUpdated.email}
                         onChange={handleEmailChange}
                     />
                     <TextField
@@ -120,11 +136,12 @@ const ProfileView = ({user}) => {
                         id="status"
                         label="Status"
                         name="status"
-                        autoComplete="status"
                         value={status}
                         onChange={handleStatusChange}
                     />
                     <TextField
+                        error ={error.password}
+                        helperText={error.password ? "Error. Too short password" : ""}
                         margin="normal"
                         required
                         fullWidth
@@ -133,10 +150,12 @@ const ProfileView = ({user}) => {
                         type="password"
                         id="password"
                         autoComplete="new-password"
-                        value={password}
+                        value={userUpdated.password}
                         onChange={handlePasswordChange}
                     />
                     <TextField
+                        error ={error.confirmPassword}
+                        helperText={error.confirmPassword ? "Error. Input value different from set password" : ""}
                         margin="normal"
                         required
                         fullWidth
@@ -144,16 +163,30 @@ const ProfileView = ({user}) => {
                         label="Confirm new password"
                         type="password"
                         id="confirm-password"
-                        autoComplete="new-password"
-                        value={confirmPassword}
+                        value={userUpdated.confirmPassword}
                         onChange={handleConfirmPasswordChange}
                     />
                     <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
                         Save changes
                     </Button>
+                    <RequestStatus message={message} displayTime={1500}/>
                 </Box>
+                <Button color="error" fullWidth variant="outlined" sx={{ mb: 2 }} 
+                    onClick={() => setOpenDeleteDialog(true)}
+                >
+                    Delete profile
+                </Button>
             </Box>
-            <ImageModal open={open} handleClose={()=>setOpen(false)} setImage={setImage}/>
+            <ImageModal 
+                open={openImageDialog} 
+                handleClose={()=>setOpenImageDialog(false)} 
+                setImage={handleImage}
+            />
+            <DeleteDialog 
+                open={openDeleteDialog} 
+                handleClose={()=>setOpenDeleteDialog(false)} 
+                handleDelete={handleDelete}
+            />
         </Container>
     );
 };

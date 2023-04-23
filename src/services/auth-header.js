@@ -1,6 +1,6 @@
-export default function authHeader(user) {
-    if (user && user.token) {
-        return { Authorization: user.token };
+export default function authHeader(token) {
+    if (token) {
+        return { Authorization: `${token}` };
     } else {
         return {};
     }

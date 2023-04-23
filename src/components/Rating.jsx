@@ -57,6 +57,7 @@ iconSize: PropTypes.string.isRequired,
 export default function RadioGroupRating({ defaultRating, rating, handleRating, iconSize }) {
 return (
     <StyledRating
+    data-testid="rating"
     name="highlight-selected-only"
     defaultValue={defaultRating}
     IconContainerComponent={(props) => <IconContainer {...props} iconSize={iconSize} />}

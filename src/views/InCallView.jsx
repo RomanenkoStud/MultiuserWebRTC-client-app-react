@@ -21,8 +21,8 @@ import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import Carousel from 'react-material-ui-carousel';
 import NotificationPanel from "../components/NotificationPanel";
 
-const host = "http://localhost:8000/";
-//const host = "https://azure-flask-socketio.azurewebsites.net/";
+//const host = "http://localhost:8000/";
+const host = "https://azure-flask-socketio.azurewebsites.net/";
 
 const userVideo = (user) => {
     return (<UserVideo stream={user.stream} username={user.id}/>);
@@ -146,7 +146,7 @@ const {
     handleAudio, 
     setDeskStream, 
     endConnection
-    } = useWebRTC(host, localUsername, roomName, settings, addNotification);
+    } = useWebRTC(host, localUsername, room, settings, addNotification);
 const [chatOpen, setChatOpen] = useState(false);
 const [deskState, setDeskState] = useState(false);
 const [sidebar, setSidebar] = useState(false);

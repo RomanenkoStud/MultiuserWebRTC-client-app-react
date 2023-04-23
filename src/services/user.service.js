@@ -1,31 +1,35 @@
 import axios from 'axios';
-
-//const API_URL = "http://localhost:8080/api/v1/users/";
-const API_URL = "https://server-app-spring.azurewebsites.net/api/v1/users/";
+import HOST from './host';
+import authHeader from './auth-header';
 
 class UserService {
-    register(username, email, password) {
-        return axios.post(API_URL + "register", {
+    constructor() {
+        this.apiUrl = HOST + '/api/v1/users';
+    }
+
+    async register({username, email, password}) {
+        return axios.post(`${this.apiUrl}/register`, {
             username,
             email,
             password
         });
     }
 
-    async getUser(token) {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({ username: "username", email: "email", avatar: "image", status: "status" });
-            }, 1000); // Simulate a 1 second delay
-        });
+    async get(id) {
+        return axios.get(`${this.apiUrl}/${id}`);
     }
 
-    async resetPassword(oldPassword, newPassword, token) {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({ status: "ok" });
-            }, 1000); // Simulate a 1 second delay
-        });
+    async update({id, username, email, password, imageUrl, token}) {
+        return axios.put(`${this.apiUrl}/${id}`, {
+            username,
+            email,
+            password,
+            imageUrl
+        }, { headers: authHeader(token) });
+    }
+
+    async delete({id, token}) {
+        return axios.delete(`${this.apiUrl}/${id}`, { headers: authHeader(token) });
     }
 }
 

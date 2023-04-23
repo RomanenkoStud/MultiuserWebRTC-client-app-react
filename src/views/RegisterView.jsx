@@ -12,21 +12,13 @@ import RequestStatus from "../components/RequestStatus";
 
 
 export default function RegisterView({handleRegister}) {
-    const [username, setUsername] = useState("");
-    const [usernameError, setUsernameError] = useState(false);
-    const [email, setEmail] = useState("");
-    const [emailError, setEmailError] = useState(false);
-    const [password, setPassword] = useState("");
-    const [passwordError, setPasswordError] = useState(false);
+    const [user, setUser] = useState({username: "", email: "", password: ""});
+    const [error, setError] = useState({username: false, email: false, password: false});
     const [message, setMessage] = useState({message: "", successful: false, loading: false});
 
     const handleSubmit = (event) => {
-    event.preventDefault();
-    handleRegister(
-        username, setUsernameError, 
-        email, setEmailError, 
-        password, setPasswordError,
-        setMessage);
+        event.preventDefault();
+        handleRegister(user, setError, setMessage);
     };
 
     return (
@@ -45,8 +37,8 @@ export default function RegisterView({handleRegister}) {
             </Typography>
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
                 <TextField
-                    error ={usernameError}
-                    helperText={usernameError ? "Error. Too short username" : ""}
+                    error ={error.username}
+                    helperText={error.username ? "Error. Too short username" : ""}
                     margin="normal"
                     required
                     fullWidth
@@ -58,14 +50,14 @@ export default function RegisterView({handleRegister}) {
                     autoFocus
                     onInput={(e) => {
                             const input = e.target.value;
-                            setUsername(input)
+                            setUser({...user, username: input})
                         }
                     }
                     sx={{transform: "translateZ(0)"}}
                 />
                 <TextField
-                    error ={emailError}
-                    helperText={emailError ? "Error. Input is not email" : ""}
+                    error ={error.email}
+                    helperText={error.email ? "Error. Input is not email" : ""}
                     margin="normal"
                     required
                     fullWidth
@@ -76,14 +68,14 @@ export default function RegisterView({handleRegister}) {
                     autoFocus
                     onInput={(e) => {
                             const input = e.target.value;
-                            setEmail(input)
+                            setUser({...user, email: input})
                         }
                     }
                     sx={{transform: "translateZ(0)"}}
                 />
                 <TextField
-                    error ={passwordError}
-                    helperText={passwordError ? "Error. Too short password" : ""}
+                    error ={error.password}
+                    helperText={error.password ? "Error. Too short password" : ""}
                     margin="normal"
                     required
                     fullWidth
@@ -95,7 +87,7 @@ export default function RegisterView({handleRegister}) {
                     autoFocus
                     onInput={(e) => {
                             const input = e.target.value;
-                            setPassword(input)
+                            setUser({...user, password: input})
                         }
                     }
                     sx={{transform: "translateZ(0)"}}
