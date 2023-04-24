@@ -91,6 +91,23 @@ const RoomController = () => {
         }
     };
 
+    const handleInvite = (username, room, setError, setMessage) => {
+        const usernameError = username.length >= 8 ? false : true;
+        setError({username: usernameError});
+        if(!usernameError) {
+            setMessage({loading: true});
+            roomService.getId(room).then(
+                (response) => {
+                    setMessage({successful: true, loading: false});
+                    navigate(`/call/${username}/${room}`);
+                },
+                (error) => {
+                    
+                }
+            );
+        }
+    };
+
     useEffect(() => {
         handleGetRooms(setSearchRooms, setSearchLoading);
         isLoggedIn && handleGetUserRooms(user, setUserRooms, setUserLoading);
@@ -107,7 +124,7 @@ const RoomController = () => {
             } />
             <Route path="/connect" element={<ConnectView user={user} handleConnect={handleConnect}/>} />
             <Route path="/connect/:room" element={<ConnectView user={user} handleConnect={handleConnect}/>} />
-            <Route path="/invite/:room" element={<InviteView user={user} handleConnect={handleConnect}/>} />
+            <Route path="/invite/:room" element={<InviteView user={user} handleConnect={handleInvite}/>} />
         </Routes>
     );
 };

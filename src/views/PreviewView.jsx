@@ -15,7 +15,7 @@ import {
 }  from "../components/UserMediaInputs/UserMediaInputs";
 import RequestStatus from "../components/RequestStatus";
 
-function PreviewView({settings, onSettings, onStart}) {
+function PreviewView({settings, onSettings, onStart, user}) {
 const [message, setMessage] = useState({message: "", successfull: false, loading: false});
 const [stream, setStream] = useState(null);
 const latestStreamValue = useRef(null);
@@ -55,6 +55,7 @@ const renderCamera = () => {
             setStream={setCameraStream}
             useMic={settings.mic}
             useCam={settings.cam}
+            user={user}
         />
         );
     } else {
@@ -64,6 +65,7 @@ const renderCamera = () => {
             setStream={setCameraStream}
             useMic={settings.mic}
             useCam={settings.cam}
+            user={user}
             latestStreamValue={latestStreamValue}
             latestStreamPromise={latestStreamPromise}
         />

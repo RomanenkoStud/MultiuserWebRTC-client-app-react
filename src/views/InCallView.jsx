@@ -24,18 +24,21 @@ import NotificationPanel from "../components/NotificationPanel";
 //const host = "http://localhost:8000/";
 const host = "https://azure-flask-socketio.azurewebsites.net/";
 
-const userVideo = (user) => {
-    return (<UserVideo stream={user.stream} username={user.id}/>);
+const userVideo = (user, userInfo) => {
+    return (<UserVideo stream={user.stream} user={userInfo}/>);
 };
 
-const deskVideos = (deskArray) => {
+const deskVideos = (deskArray, userInfo) => {
     return deskArray.map((desk) => (
-        <DeskVideo key={desk.id} stream={desk.stream} username={desk.id}/>
+        <DeskVideo key={desk.id} stream={desk.stream} user={userInfo[desk.id]}/>
     ))
 }
 
-function VideosLayout({userCamera, users}) {
+function VideosLayout({userCamera, users, usersInfo}) {
     const matchesSM = useMediaQuery(theme => theme.breakpoints.down('sm'));
+    const userInfo = (i) => {
+        return usersInfo[users[i].id];
+    }
     return(
     <Grid container spacing={1} justifyContent={matchesSM ? "start" : "center"}>
         {/* Main */}
@@ -44,7 +47,7 @@ function VideosLayout({userCamera, users}) {
         </Grid>
         {users[0] ? 
         (<Grid item xs={4} sm={6} md={4}>
-        {userVideo(users[0])}
+        {userVideo(users[0], userInfo(0))}
         </Grid>) : null}
         {/* Side videos */}
         {users[1] ?
@@ -52,28 +55,32 @@ function VideosLayout({userCamera, users}) {
         <Grid container spacing={1}>
             {users[1] ?
             (<Grid item xs={6} sm={3} md={12}>
-            {userVideo(users[1])}
+            {userVideo(users[1], userInfo(1))}
             </Grid>) : null}
             {users[2] ?
             (<Grid item xs={6} sm={3} md={12}>
-            {userVideo(users[2])}
+            {userVideo(users[2], userInfo(2))}
             </Grid>) : null}
         </Grid>
         </Grid>): null}
     </Grid>);
 }
 
-function VideosLayoutWithDesk({userCamera, userDesk, users, desk}) {
+function VideosLayoutWithDesk({userCamera, userDesk, users, desk, usersInfo}) {
     const allDesk = (local, remoteArray) => {
         if (local && remoteArray[0]) {
-        return [local, ...deskVideos(remoteArray)];
+        return [local, ...deskVideos(remoteArray, usersInfo)];
         } else if (local) {
         return [local];
         } else if (remoteArray[0]) {
-        return deskVideos(remoteArray);
+        return deskVideos(remoteArray, usersInfo);
         } else {
         return null;
         }
+    }
+
+    const userInfo = (id) => {
+        return usersInfo[users[id].id];
     }
 
     return(
@@ -100,7 +107,7 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk}) {
             </Grid>
             {users[0] ?
             (<Grid item xs={6} sm={6} md={12}>
-            {userVideo(users[0])}
+            {userVideo(users[0], userInfo(0))}
             </Grid>) : null}
         </Grid>
         </Grid>
@@ -109,20 +116,18 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk}) {
         <Grid container spacing={1}>
             {users[1] ?
             (<Grid item xs={6} sm={6} md={12}>
-            {userVideo(users[1])}
+            {userVideo(users[1], userInfo(1))}
             </Grid>) : null}
             {users[2] ?
             (<Grid item xs={6} sm={6} md={12}>
-            {userVideo(users[2])}
+            {userVideo(users[2], userInfo(2))}
             </Grid>) : null}
         </Grid>
         </Grid>): null}
     </Grid>);
 }
 
-function InCallView({username, room, settings, onEnd}) {
-const localUsername = username;
-const roomName = room;
+function InCallView({user, room, settings, onEnd}) {
 const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 const [notifications, setNotifications] = useState([]);
 const addNotification = useCallback((message, severity, link) => {
@@ -141,12 +146,13 @@ const {
     socket, 
     localStreamState, 
     remoteStreamsState, 
+    usersInfo,
     setCameraStream, 
     handleVideo, 
     handleAudio, 
     setDeskStream, 
     endConnection
-    } = useWebRTC(host, localUsername, room, settings, addNotification);
+    } = useWebRTC(host, user, room.id, settings, addNotification);
 const [chatOpen, setChatOpen] = useState(false);
 const [deskState, setDeskState] = useState(false);
 const [sidebar, setSidebar] = useState(false);
@@ -155,7 +161,7 @@ const latestStreamPromise = useRef(null);
 
 const onResult = (transcript) => {
     console.log("message: " + transcript)
-    socket.current.emit('user_speech', { username: localUsername, room: roomName, transcript: transcript });
+    socket.current.emit('user_speech', { username: user.id, room: room.id, transcript: transcript });
 }
 useSpeechRecognition(localStreamState.mic, 'en-US', onResult);
 
@@ -183,8 +189,8 @@ const handleChatClose = () => {
     setChatOpen(false);
 };
 
-const getParticipants = (connections) => {
-    return [localUsername, ...connections.map((item) => { return item.id })];
+const getParticipants = () => {
+    return [user, ...Object.values(usersInfo.current)];
 };
 
 const handleDesk = () => {
@@ -208,6 +214,7 @@ const renderCamera = () => {
             setStream={setCameraStream.current}
             useMic={localStreamState.mic}
             useCam={localStreamState.cam}
+            user={user}
         />
         );
     } else {
@@ -217,6 +224,7 @@ const renderCamera = () => {
             setStream={setCameraStream.current}
             useMic={localStreamState.mic}
             useCam={localStreamState.cam}
+            user={user}
             latestStreamValue={latestStreamValue}
             latestStreamPromise={latestStreamPromise}
         />
@@ -238,16 +246,20 @@ return (
     <Container maxWidth='xl'>
         {deskState||remoteStreamsState.desk[0] ?
         (<VideosLayoutWithDesk 
-        userCamera={renderCamera()} 
-        userDesk={deskState? <ScreenSharing 
-            setStream={setDeskStream.current} 
-            onCancel={() => setDeskState(false)}/> : false} 
+            userCamera={renderCamera()} 
+            userDesk={deskState? <ScreenSharing 
+                setStream={setDeskStream.current} 
+                onCancel={() => setDeskState(false)}
+                user={user}/> : false
+            } 
             users={remoteStreamsState.users} 
+            usersInfo={usersInfo.current}
             desk={remoteStreamsState.desk[0] ? remoteStreamsState.desk : false}
         />) :
         (<VideosLayout 
         userCamera={renderCamera()} 
         users={remoteStreamsState.users}
+        usersInfo={usersInfo.current}
         />)
         }
     </Container>
@@ -255,10 +267,10 @@ return (
         isOpen={chatOpen} 
         onClose={handleChatClose} 
         socket={socket.current} 
-        localUsername={localUsername}
-        roomName={roomName}
+        localUsername={user.id}
+        roomName={room.id}
     />
-    <ParticipantsList participants={getParticipants(remoteStreamsState.users)} isOpen={sidebar} onClose={()=>setSidebar(false)}/>
+    <ParticipantsList participants={getParticipants()} isOpen={sidebar} onClose={()=>setSidebar(false)}/>
     <ControlPanel cameraEnabled={localStreamState.cam} handleCamera={handleVideo} 
         micEnabled={localStreamState.mic} handleMic={handleAudio} 
         blurEnabled={useBlur} handleBlur={()=>setUseBlur(!useBlur)} 
@@ -266,7 +278,7 @@ return (
         handleChat={handleChatOpen} handleParticipants={()=>setSidebar(!sidebar)} 
         notifications={notifications}
         handleNotifications={()=> setIsNotificationsOpen(!isNotificationsOpen)}
-        handleEndCall={handleEndCall} invite={`${window.location.origin}/rooms/invite/${roomName}`} />
+        handleEndCall={handleEndCall} invite={`${window.location.origin}/rooms/invite/${room.id}`} />
     </Box>
     <NotificationPanel 
         notifications={notifications} 

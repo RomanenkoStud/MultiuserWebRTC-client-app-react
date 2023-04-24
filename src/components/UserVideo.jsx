@@ -5,12 +5,12 @@ import {
     Chip, 
     Box, 
     Avatar, 
-    Typography 
+    Typography
 } from '@mui/material';
 import { Mic, MicOff as MicOffIcon} from '@mui/icons-material';
 import { useSpeakingDetector } from "../hooks/useSpeakingDetector";
 
-function UserVideoPlaceholder(props) {
+function UserVideoPlaceholder({user, children}) {
     return (
         <Box sx={{
                 width: '100%',
@@ -24,18 +24,27 @@ function UserVideoPlaceholder(props) {
                 justifyContent: 'center',
                 alignItems: 'center',
                 }} >
-            <Avatar sx={{ bgcolor: 'default', width: '50%', height: '50%'  }}>
-                <Typography sx={{ fontSize: 40 }}>{props.username}</Typography>
+            <Avatar sx={{ bgcolor: 'default', width: '50%', height: '50%'  }} image={user.imageUrl}>
+                {user.imageUrl ? (
+                    <img src={user.imageUrl} alt="Profile"
+                    style={{
+                        objectFit: 'cover',
+                        width: '100%',
+                        height: '100%',
+                    }}/>
+                ) : (
+                    <Typography sx={{ fontSize: 40 }}>{user.username.charAt(0)}</Typography>
+                )}
             </Avatar>
-            {props.children}
+            {children}
         </Box>
     );
 }
 
-function UserVideo(props) {
-    const audioState = props.stream ? props.stream.getAudioTracks()[0]?.enabled : false;
-    const videoState = props.stream ? props.stream.getVideoTracks()[0]?.enabled : false;
-    const isSpeaking = useSpeakingDetector(props.stream);
+function UserVideo({stream, muted, user}) {
+    const audioState = stream ? stream.getAudioTracks()[0]?.enabled : false;
+    const videoState = stream ? stream.getVideoTracks()[0]?.enabled : false;
+    const isSpeaking = useSpeakingDetector(stream);
 
     const shadowColor = 'rgba(33, 78, 40, 0.5)';
     const shadowThickness = isSpeaking ? 20 : 3;
@@ -46,11 +55,11 @@ function UserVideo(props) {
             boxShadow: `${shadowColor} 0px 0px ${shadowThickness}px`,
             }}
         >
-            {props.stream ? 
+            {stream ? 
                 (videoState ? 
-                    <VideoItem stream={props.stream} muted={props.muted}/> : 
-                    <UserVideoPlaceholder username={props.username}>
-                        <VideoItem stream={props.stream} muted={props.muted} hidden/>
+                    <VideoItem stream={stream} muted={muted}/> : 
+                    <UserVideoPlaceholder user={user}>
+                        <VideoItem stream={stream} muted={muted} hidden/>
                     </UserVideoPlaceholder>
                 ) : 
                     <Skeleton variant="rectangular" 

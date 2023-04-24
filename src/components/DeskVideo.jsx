@@ -1,7 +1,7 @@
 import VideoItem from "./VideoItem";
 import { Paper, Skeleton, Chip } from '@mui/material';
 
-function DeskVideo(props) {
+function DeskVideo({stream, muted, user}) {
 
     return (
         <div style={{ lineHeight: 0 }}>
@@ -9,8 +9,8 @@ function DeskVideo(props) {
             sx={{overflow: 'hidden', position: 'relative', aspectRatio: "16/8"
             }}
         >
-            {props.stream ? 
-                <VideoItem stream={props.stream} muted={props.muted} fullScreen/> : 
+            {stream ? 
+                <VideoItem stream={stream} muted={muted} fullScreen/> : 
                 <Skeleton variant="rectangular" 
                         sx={{
                         width: '100%',
@@ -20,7 +20,7 @@ function DeskVideo(props) {
                 />
             }
             <Chip
-            label={"Streaming: " + props.username}
+            label={"Streaming: " + user.username}
             sx={{
                 color: 'gray',
                 lineHeight: 10,

@@ -22,7 +22,7 @@ const streamDesk = (setStream, onCancel) => {
     });
 }
 
-const ScreenSharing = ({setStream, onCancel}) => {
+const ScreenSharing = ({setStream, onCancel, user}) => {
     const [deskStream, setDeskStream] = useState(null);
     const enabled = useRef(false);
 
@@ -41,7 +41,7 @@ const ScreenSharing = ({setStream, onCancel}) => {
 
     return (
     <>
-        {deskStream ? <DeskVideo stream={deskStream} username="you" muted/> : null} 
+        {deskStream ? <DeskVideo stream={deskStream} user={user} muted/> : null} 
     </>
     );
 };

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useCameraBlurBackground } from "../../hooks/useCameraBlurBackground";
 import UserVideo from "../UserVideo";
 
-const CameraBlurBackground = ({stream, setStream, useMic, useCam}) => {
+const CameraBlurBackground = ({stream, setStream, useMic, useCam, user}) => {
     const { videoRef, canvasRef, streamLocal, reset } = useCameraBlurBackground();
     const [mic, setMic] = useState(useMic);
     const [cam, setCam] = useState(useCam);
@@ -26,7 +26,7 @@ const CameraBlurBackground = ({stream, setStream, useMic, useCam}) => {
 
     return (
     <>
-        <UserVideo stream={stream} username="you" muted/> 
+        <UserVideo stream={stream} user={user} muted/> 
         <video className="input-video" ref={videoRef} style={{ display: 'none',}}></video>
         <canvas className="output-canvas" style={{ display: 'none',}} ref={canvasRef}></canvas>
     </>

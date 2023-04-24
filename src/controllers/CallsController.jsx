@@ -18,6 +18,10 @@ export default function CallsController() {
   const settings = useSelector((state) => state.settings.config);
   const dispatch = useDispatch();
 
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const user = useSelector((state) => state.auth.user);
+  const userInfo = isLoggedIn ? user : {id: username, username: username, imageUrl: null};
+
   const onStart = (setMessage) => {
     roomService.join(username, roomId).then(
       (response) => {
@@ -57,9 +61,9 @@ export default function CallsController() {
   }
 
   const CallView = inCall ? (
-        <InCallView username={username} room={roomId} settings={settings} onEnd={onEnd}/>
+        <InCallView user={userInfo} room={{id: roomId}} settings={settings} onEnd={onEnd}/>
       ) : (
-        <PreviewView settings={settings} onSettings={onSettings} onStart={onStart}/>
+        <PreviewView user={userInfo} room={{id: roomId}} settings={settings} onSettings={onSettings} onStart={onStart}/>
       );
 
   return (

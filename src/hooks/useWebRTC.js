@@ -149,10 +149,11 @@ const remoteStreamsReducer = (state, action) => {
     }
 }
 
-export const useWebRTC = (host, localUsername, roomName, settings, addNotification) => {
+export const useWebRTC = (host, user, roomId, settings, addNotification) => {
     const socket = useRef(null);
     const pc = useRef({}); // For RTCPeerConnection Objects
     const dataChannel = useRef({}); 
+    const usersInfo = useRef({}); 
     const [localStreamState, localStreamDispatch] = useReducer(localStreamReducer, 
         {stream: false, desk: false, mic: settings.mic, cam: settings.cam});
     const [remoteStreamsState, remoteStreamsDispatch] = useReducer(remoteStreamsReducer,
@@ -185,13 +186,17 @@ export const useWebRTC = (host, localUsername, roomName, settings, addNotificati
             localStreamDispatch({type: 'end'});
             endConnection.current();
         });
-        socket.current.on("leave", (username) => {
+        socket.current.on("leave", (sid) => {
             console.log("Disconnect!");
-            pc.current[username].close();
-            delete pc.current[username];
-            delete dataChannel.current[username];
-            remoteStreamsDispatch({type: 'remove', value: username});
-            addNotification(username + " left", 'info');
+            addNotification(usersInfo.current[sid].username + " left", 'info');
+            pc.current[sid].close();
+            delete pc.current[sid];
+            delete dataChannel.current[sid];
+            delete usersInfo.current[sid];
+            remoteStreamsDispatch({type: 'remove', value: sid});
+        });
+        socket.current.on("user_info", (info, sid) => {
+            usersInfo.current[sid] = info;
         });
         return function cleanup() {
             endConnection.current();
@@ -200,10 +205,9 @@ export const useWebRTC = (host, localUsername, roomName, settings, addNotificati
     }, [host, addNotification]);
 
     useEffect(() => {
-        const sendData = (data) => {
+        const sendData = (data, sid) => {
             socket.current.emit("data", {
-            username: localUsername,
-            room: roomName,
+            sid: sid,
             data: data,
             });
         };
@@ -212,10 +216,10 @@ export const useWebRTC = (host, localUsername, roomName, settings, addNotificati
             return (event) => {
             if (event.candidate) {
             console.log("Sending ICE candidate");
-            sendData({description: {
+            sendData({
                 type: "candidate",
                 candidate: event.candidate,
-            }, id: sid,});
+            }, sid);
             }}
         };
     
@@ -279,7 +283,7 @@ export const useWebRTC = (host, localUsername, roomName, settings, addNotificati
             return (sessionDescription) => {
             pc.current[sid].setLocalDescription(sessionDescription);
             console.log("Local description set", sid);
-            sendData({description:sessionDescription, id: sid,});
+            sendData(sessionDescription, sid);
         };}
     
         const sendOffer = (sid) => {
@@ -296,21 +300,19 @@ export const useWebRTC = (host, localUsername, roomName, settings, addNotificati
             });
         };
     
-        const signalingDataHandler = (data, username) => {
-            if(data.id === localUsername) {
-            if (data.description.type === "offer") {
-                if (pc.current[username] === undefined) {
-                createPeerConnection(username);
+        const signalingDataHandler = (data, sid) => {
+            if (data.type === "offer") {
+                if (pc.current[sid] === undefined) {
+                createPeerConnection(sid);
                 }
-                pc.current[username].setRemoteDescription(new RTCSessionDescription(data.description));
-                sendAnswer(username);
-            } else if (data.description.type === "answer") {
-                pc.current[username].setRemoteDescription(new RTCSessionDescription(data.description));
-            } else if (data.description.type === "candidate") {
-                pc.current[username].addIceCandidate(new RTCIceCandidate(data.description.candidate));
+                pc.current[sid].setRemoteDescription(new RTCSessionDescription(data));
+                sendAnswer(sid);
+            } else if (data.type === "answer") {
+                pc.current[sid].setRemoteDescription(new RTCSessionDescription(data));
+            } else if (data.type === "candidate") {
+                pc.current[sid].addIceCandidate(new RTCIceCandidate(data.candidate));
             } else {
                 console.log("Unknown Data");
-            }
             }
         };
 
@@ -321,7 +323,7 @@ export const useWebRTC = (host, localUsername, roomName, settings, addNotificati
             if(localStreamState.desk) {
                 endStream(localStreamState.desk);
             }
-            socket.current.emit("leave", { username: localUsername, room: roomName });
+            socket.current.emit("leave", {room: roomId});
             socket.current.close();
             for (let sid in pc.current) {
             pc.current[sid].close();
@@ -360,30 +362,36 @@ export const useWebRTC = (host, localUsername, roomName, settings, addNotificati
 
         if(localStreamState.stream){
             socket.current.off("ready");
-            socket.current.on("ready", (username) => {
+            socket.current.on("ready", (remoteUser, sid) => {
                 console.log("Ready to Connect!");
-                createPeerConnection(username);
-                sendOffer(username);
-                addNotification(username + " joined", 'info');
+                createPeerConnection(sid);
+                sendOffer(sid);
+                usersInfo.current[sid] = remoteUser;
+                socket.current.emit("user_info", {
+                    sid: sid,
+                    info: user,
+                });
+                addNotification(remoteUser.username + " joined", 'info');
             });
             socket.current.off("data");
-            socket.current.on("data", (data, username) => {
-                signalingDataHandler(data, username);
+            socket.current.on("data", (data, sid) => {
+                signalingDataHandler(data, sid);
             });
         }
-    }, [localStreamState.stream, localStreamState.desk, localUsername, roomName, addNotification]);
+    }, [localStreamState.stream, localStreamState.desk, addNotification, user, roomId]);
 
     useEffect(() => {
         if(localStreamState.stream && !socket.current.connected){
             socket.current.connect();
-            socket.current.emit("join", { username: localUsername, room: roomName });
+            socket.current.emit("join", { user: user, room: roomId });
         }
-    }, [localStreamState.stream, localUsername, roomName]);
+    }, [localStreamState.stream, user, roomId]);
 
     return {
         socket,
         localStreamState, 
         remoteStreamsState, 
+        usersInfo,
         setCameraStream, 
         handleVideo,
         handleAudio,

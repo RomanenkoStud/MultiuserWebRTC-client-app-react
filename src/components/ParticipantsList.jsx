@@ -20,14 +20,23 @@ function ParticipantsList({participants, isOpen, onClose}) {
             <List style={{ minWidth: '200px', minHeight: '100px', 
                 maxHeight: '300px', overflowY: 'auto' }} id="participants-container">
             {participants.map((participant) => (
-                <ListItem key={participant}>
+                <ListItem key={participant.id}>
                     <ListItemAvatar>
                         <Avatar>
-                            {participant.charAt(0)}
+                        {participant.imageUrl ? (
+                            <img src={participant.imageUrl} alt="Profile"
+                            style={{
+                                objectFit: 'cover',
+                                width: '100%',
+                                height: '100%',
+                            }}/>
+                        ) : (
+                            participant.username.charAt(0)
+                        )}
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                    primary={participant}
+                    primary={participant.username}
                     />
                 </ListItem>
             ))}

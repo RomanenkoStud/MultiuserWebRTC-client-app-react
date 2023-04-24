@@ -111,7 +111,7 @@ const streamLocal = (setStream, useMic, useCam, latestStreamValue, latestStreamP
 };
 
 
-const Camera = ({stream, setStream, useMic, useCam, latestStreamValue, latestStreamPromise}) => {
+const Camera = ({stream, setStream, useMic, useCam, latestStreamValue, latestStreamPromise, user}) => {
     const mic = useRef(useMic);
     const cam = useRef(useCam);
     const enabled = useRef(false);
@@ -133,7 +133,7 @@ const Camera = ({stream, setStream, useMic, useCam, latestStreamValue, latestStr
 
     return (
     <>
-        <UserVideo stream={stream} username="you" muted/> 
+        <UserVideo stream={stream} user={user} muted/> 
     </>
     );
 };
