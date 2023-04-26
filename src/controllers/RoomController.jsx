@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback } from "react";
 import { Route, Routes } from 'react-router-dom';
 import CreateRoomView from "../views/CreateRoomView";
 import SearchView from "../views/SearchView";
@@ -11,13 +11,8 @@ import roomService from "../services/room.service";
 
 
 const RoomController = () => {
-    const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
     const user = useSelector((state) => state.auth.user);
     const { navigate } = useLogoAnimation();
-    const [searchRooms, setSearchRooms] = useState([]);
-    const [userRooms, setUserRooms] = useState([]);
-    const [searchLoading, setSearchLoading] = useState(true);
-    const [userLoading, setUserLoading] = useState(true);
 
     const handleCreate = (room, setError, setMessage) => {
         const roomError = room.roomName.length >= 8 ? false : true;
@@ -36,31 +31,27 @@ const RoomController = () => {
         }
     };
 
-    const handleGetRooms = (setRooms, setLoading) => {
-        setLoading(true);
+    const handleGetRooms = useCallback((setRooms) => {
         roomService.getRooms().then(
             (response) => {
                 setRooms(response);
-                setLoading(false);
             },
             (error) => {
-                
+                // handle error
             }
         );
-    };
+    }, []);
 
-    const handleGetUserRooms = (currentUser, setRooms, setLoading) => {
-        setLoading(true);
-        roomService.getUserRooms(currentUser.id, currentUser.token).then(
+    const handleGetUserRooms = useCallback((setRooms) => {
+        roomService.getUserRooms(user.id, user.token).then(
             (response) => {
                 setRooms(response);
-                setLoading(false);
             },
             (error) => {
                 
             }
         );
-    };
+    }, [user]);
 
     const handleDelete = (room, onDelete) => {
         roomService.delete(room.id, user.token).then(
@@ -108,16 +99,11 @@ const RoomController = () => {
         }
     };
 
-    useEffect(() => {
-        handleGetRooms(setSearchRooms, setSearchLoading);
-        isLoggedIn && handleGetUserRooms(user, setUserRooms, setUserLoading);
-    }, [isLoggedIn, user]);
-
     return (
         <Routes>
-            <Route path="/" element={<SearchView rooms={searchRooms} loading={searchLoading}/>} />
+            <Route path="/" element={<SearchView handleGetRooms={handleGetRooms}/>} />
             <Route path="/user" element={
-                <PrivateRoute component={SearchView} rooms={userRooms} loading={userLoading} handleDelete={handleDelete}/>
+                <PrivateRoute component={SearchView} handleGetRooms={handleGetUserRooms} handleDelete={handleDelete}/>
             } />
             <Route path="/create" element={
                 <PrivateRoute component={CreateRoomView} handleCreate={handleCreate}/>

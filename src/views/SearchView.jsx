@@ -296,17 +296,28 @@ const ViewToggle = ({ onViewChange }) => {
     );
 };
 
-const SearchView = ({rooms, loading, handleDelete}) => {
+const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [filters, setFilters] = useState([]);
     const [sortType, setSortType] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [viewType, setViewType] = useState('grid');
-
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(true);
+    
     useEffect(() => {
-        setSearchResults(rooms);
-    }, [rooms]);
+        setLoading(true);
+        handleGetRooms((data) => {
+            setRooms(data);
+            setSearchResults(data);
+            setLoading(false);
+        });
+        const intervalId = setInterval(() => {
+            handleGetRooms(setRooms);
+        }, pollInterval); // set short polling 
+        return () => clearInterval(intervalId);
+    }, [handleGetRooms, pollInterval]);
 
     const sort = (results) => {
         const sortedResults = results.slice();

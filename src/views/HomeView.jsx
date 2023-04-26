@@ -348,7 +348,7 @@ const HomeView = () => {
         <HomeContainer>
         <CssBaseline />
         <Grid container spacing={3} sx={{ marginBottom: 10 }}>
-            <Grid item xs={12} sm={12} md={6}>
+            <Grid item xs={12} sm={12} md={6} sx={{height: "100%"}}>
             <Zoom in={true} timeout={2000}>
                 <img src="/images/videoCallDemo1.jpg" alt="Video icon" style={{ width: '100%', filter: theme.palette.mode === 'dark' ? 'brightness(75%)' : 'none' }} />
             </Zoom>

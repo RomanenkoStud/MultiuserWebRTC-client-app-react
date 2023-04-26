@@ -27,15 +27,50 @@ import { useTheme } from '@mui/material/styles';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import { useState } from "react";
 
+const MediaButton = ({name, state, onIcon, offIcon, onClick}) => {
+    return (
+        <Tooltip title={state ? `Disable ${name}` : `Enable ${name}`}>
+            <IconButton onClick={onClick}>
+            {state ? onIcon : offIcon}
+            </IconButton>
+        </Tooltip>
+    );
+}
+
+const DialogButton = ({name, icon, onClick, badgeContent}) => {
+    return (
+        <Tooltip title={`Open ${name}`}>
+            <IconButton onClick={onClick}>
+                <Badge badgeContent={badgeContent} color="error">
+                    {icon}
+                </Badge>
+            </IconButton>
+        </Tooltip>
+    );
+}
+
+const CopyButton = ({text}) => {
+    const [isCopied, setIsCopied] = useState(false);
+    return (
+        <Tooltip title={isCopied ? 'Copied!' : 'Copy to clipboard'}>
+            <IconButton>
+                <CopyToClipboard text={text} onCopy={() => setIsCopied(true)}>
+                    <Share />
+                </CopyToClipboard>
+            </IconButton>
+        </Tooltip>
+    );
+}
+
 const ControlPanel = ({
     cameraEnabled, handleCamera, 
     micEnabled, handleMic, 
     blurEnabled, handleBlur,
     screenSharing, handleScreenSharing,
     handleChat, handleParticipants,
-    notifications, handleNotifications,
+    notifications, 
+    handleNotifications,
     handleEndCall, invite}) => {
-    const [isCopied, setIsCopied] = useState(false);
     const theme = useTheme();
     const matchesMd = useMediaQuery(theme.breakpoints.down('md'));
     const [anchorEl, setAnchorEl] = useState(null);
@@ -61,16 +96,17 @@ const ControlPanel = ({
                 <MenuItem onClick={handleScreenSharing}>
                     {screenSharing ? <StopScreenShare /> : <ScreenShare />}
                 </MenuItem>
-                <CopyToClipboard text={invite} onCopy={() => setIsCopied(true)}>
                 <MenuItem>
-                    <Share />
+                    <CopyToClipboard text={invite}>
+                        <Share />
+                    </CopyToClipboard>
                 </MenuItem>
-                </CopyToClipboard>
             </Menu>
     );
     
     return (
-            <ButtonGroup sx={{
+            <ButtonGroup 
+            sx={{
                 position: 'fixed',
                 bottom: 15,
                 left: '50%',
@@ -80,58 +116,23 @@ const ControlPanel = ({
                 px: 5,
                 boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)',
             }}>
-            <Tooltip title={cameraEnabled ? 'Disable Camera' : 'Enable Camera'}>
-                <IconButton onClick={handleCamera}>
-                {cameraEnabled ? <Videocam /> : <VideocamOff />}
-                </IconButton>
-            </Tooltip>
-            <Tooltip title={micEnabled ? 'Mute Mic' : 'Unmute Mic'}>
-                <IconButton onClick={handleMic}>
-                {micEnabled ? <Mic /> : <MicOff />}
-                </IconButton>
-            </Tooltip>
+            <MediaButton name="Camera" state={cameraEnabled} onIcon={<Videocam />} offIcon={<VideocamOff />} onClick={handleCamera}/>
+            <MediaButton name="Mic" state={micEnabled} onIcon={<Mic />} offIcon={<MicOff />} onClick={handleMic}/>
             {!matchesMd && (<>
-            <Tooltip title={cameraEnabled ? 'Disable Blur' : 'Enable Blur'}>
-                <IconButton onClick={handleBlur}>
-                {blurEnabled ? <BlurOn /> : <BlurOff />}
-                </IconButton>
-            </Tooltip>
-            <Tooltip title={screenSharing ? 'Stop Sharing' : 'Start Sharing'}>
-                <IconButton onClick={handleScreenSharing}>
-                {screenSharing ? <StopScreenShare /> : <ScreenShare />}
-                </IconButton>
-            </Tooltip>
+                <MediaButton name="Blur" state={blurEnabled} onIcon={<BlurOff />} offIcon={<BlurOn/>} onClick={handleBlur}/>
+                <MediaButton name="Sharing" state={screenSharing} onIcon={<StopScreenShare />} offIcon={<ScreenShare />} onClick={handleScreenSharing}/>
             </>)}
-            <Tooltip title="Open Chat">
-                <IconButton onClick={handleChat}>
-                <Chat />
-                </IconButton>
-            </Tooltip>
-            <Tooltip title="Open Participants">
-                <IconButton onClick={handleParticipants}>
-                <People />
-                </IconButton>
-            </Tooltip>
-            <Tooltip title="Notifications">
-                <IconButton onClick={handleNotifications}>
-                    <Badge badgeContent={notifications.length} color="error">
-                        <Notifications />
-                    </Badge>
-                </IconButton>
-            </Tooltip>
+            <DialogButton name="Chat" icon={<Chat />} onClick={handleChat}/>
+            <DialogButton name="Participants" icon={<People />} onClick={handleParticipants}/>
+            <DialogButton name="Notifications" icon={<Notifications />} badgeContent={notifications.length} onClick={handleNotifications}/>
             <Tooltip title="End Call">
                 <IconButton onClick={handleEndCall}>
                 <CallEnd />
                 </IconButton>
             </Tooltip>
             {!matchesMd && (
-            <CopyToClipboard text={invite} onCopy={() => setIsCopied(true)}>
-                <Tooltip title={isCopied ? 'Copied!' : 'Copy to clipboard'}>
-                    <IconButton>
-                        <Share />
-                    </IconButton>
-                </Tooltip>
-            </CopyToClipboard>)}
+                <CopyButton text={invite}/>
+            )}
             {matchesMd && <Tooltip title="More">
                 <IconButton onClick={handleMoreClick}>
                     <MoreVert />
