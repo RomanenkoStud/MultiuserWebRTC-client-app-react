@@ -48,16 +48,11 @@ const UserController = () => {
     const handleUpdate = (userUpdated, setError, setMessage) => {
         const validateUsername = userUpdated.username.length >= 8 ? false : true;
         const validateEmail = !isEmail(userUpdated.email);
-        const validatePassword = userUpdated.password.length >= 8 ? false : true;
-        const validateConfirmPassword = 
-            userUpdated.confirmPassword === userUpdated.password ? false : true;
         setError({
             username: validateUsername, 
             email: validateEmail, 
-            password: validatePassword,
-            confirmPassword: validateConfirmPassword
         });
-        if (!validateUsername && !validateEmail && !validatePassword) {
+        if (!validateUsername && !validateEmail) {
             setMessage({
                 successful: false,
                 message: "Please wait...",
@@ -75,9 +70,50 @@ const UserController = () => {
                         dispatch(update(userUpdated));
                     },
                     (error) => {
+                        console.log(error.response.data.message)
                         setMessage({
                             successful: false,
-                            message: error.response,
+                            message: error.response.data,
+                            loading: false
+                        });
+                    }
+                );
+        };
+    };
+
+    const handlePasswordUpdate = (passwordForm, setPasswordForm, setError, setMessage) => {
+        const validatePassword = passwordForm.password.length >= 8 ? false : true;
+        const validateConfirmPassword = 
+            passwordForm.confirmPassword === passwordForm.password ? false : true;
+        setError({
+            password: validatePassword,
+            confirmPassword: validateConfirmPassword
+        });
+        if (!validatePassword) {
+            setMessage({
+                successful: false,
+                message: "Please wait...",
+                loading: true
+            });
+            userService
+                .update({...passwordForm, ...user})
+                .then(
+                    (response) => {
+                        setPasswordForm({
+                            password: "",  
+                            confirmPassword: "",
+                        });
+                        setMessage({
+                            message: "Successful!",
+                            successful: true,
+                            loading: false
+                        });
+                    },
+                    (error) => {
+                        console.log(error.response.data.message)
+                        setMessage({
+                            successful: false,
+                            message: error.response.data,
                             loading: false
                         });
                     }
@@ -103,6 +139,7 @@ const UserController = () => {
             <Route path="/" element={<PrivateRoute component={ProfileView} 
                 user={user} 
                 handleUpdate={handleUpdate}
+                handlePasswordUpdate={handlePasswordUpdate}
                 handleDelete={handleDelete}
             />} />
             <Route path="/register" element={<RegisterView handleRegister={handleRegister} />} />

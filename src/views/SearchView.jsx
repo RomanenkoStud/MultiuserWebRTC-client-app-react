@@ -41,6 +41,28 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useLogoAnimation } from "../hooks/useLogoAnimation";
 
+const dateFormat = (date) => {
+    const dateObj = new Date(date);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return dateObj.toLocaleDateString('en-US', options);
+}
+
+const UserAvatar = ({user}) => {
+    return (
+        <Avatar key={user.username} image={user.imageUrl}>
+            {user.imageUrl ? (
+                <img src={user.imageUrl} alt={user.username}
+                style={{
+                    objectFit: 'cover',
+                    width: '100%',
+                    height: '100%',
+                }}/>
+            ) : 
+                user.username.charAt(0).toUpperCase()
+            }
+        </Avatar>
+    );
+}
 
 const FilterChips = ({filters, setFilters, clear}) => {
     const handleFilterDelete = (filterToDelete) => {
@@ -91,6 +113,8 @@ const Filters = ({ appliedFilters, addFilters }) => {
         setFilters([]);
     };
     
+    const randomId = Math.random().toString(36).substring(2, 8); // Generates a random string of 6 characters
+    
     return (
     <Box>
         {filterTypes.map((filterType) => (
@@ -101,7 +125,7 @@ const Filters = ({ appliedFilters, addFilters }) => {
             labelId={`${filterType.id}-select-label`}
             id={`${filterType.id}-select`}
             value={filters.find((filter) => filter.id === filterType.id)?.value || ""}
-            onChange={(e) => handleFilterAdd({ label: filterType.label, id: filterType.id, value: e.target.value })}
+            onChange={(e) => handleFilterAdd({ label: filterType.label, id: filterType.id + '_' + randomId, value: e.target.value })}
             >
             {filterType.options.map((option) => {
                 const selectedFilter = [...appliedFilters, ...filters].find((filter) => filter.id === filterType.id && filter.value === option);
@@ -177,24 +201,24 @@ const RoomsGrid = ({rooms, handleDelete}) => {
                             Max Users: {room.maxUsers}
                         </Typography>
                         <Typography variant="body2" gutterBottom>
-                            Date: {room.date}
+                            Date: {dateFormat(room.date)}
                         </Typography>
                         <Typography variant="body2" gutterBottom>
                         {room.isPrivate ? "Private Room" : "Public Room"}
                         </Typography>
-                        <AvatarGroup max={4}>
-                        {room.users.map((user) => (
-                            <Avatar key={user} alt={user} src={`https://picsum.photos/seed/${user}/64`} />
-                        ))}
+                        <AvatarGroup max={4} sx={{height: 44}}>
+                            {room.users?.map((user) => (
+                                <UserAvatar user={user}/>
+                            ))}
                         </AvatarGroup>
                     </CardContent>
                     <CardActions>
                         <Button  variant="outlined" color="primary" 
-                            onClick={()=>navigate(`/rooms/connect/${room.roomname}`)}
+                            onClick={()=>navigate(`/rooms/invite/${room.id}/${room.isPrivate}`)}
                         >
                             Join
                         </Button>
-                        {handleDelete && (<Button  variant="outlined" color="primary" 
+                        {handleDelete && (<Button  variant="outlined" color="error" 
                             onClick={()=>handleDelete(room.id)}
                         >
                             Delete
@@ -222,7 +246,7 @@ const RoomsList = ({ rooms, handleDelete }) => {
                 <ListItem
                 secondaryAction={
                     <IconButton edge="end" aria-label="comments" 
-                        onClick={()=>navigate(`/rooms/connect/${room.roomname}`)}
+                        onClick={()=>navigate(`/rooms/connect/${room.roomname}/${room.isPrivate}`)}
                     >
                         <DuoIcon />
                     </IconButton>
@@ -232,11 +256,7 @@ const RoomsList = ({ rooms, handleDelete }) => {
                 <ListItemButton onClick={() => handleRoomClick(room)}>
                     <ListItemAvatar>
                     {room.users ? (
-                        <Avatar
-                        key={room.users[0]}
-                        alt={room.users[0]}
-                        src={`https://picsum.photos/seed/${room.users[0]}/64`}
-                        />
+                        <UserAvatar user={room.users[0]}/>
                     ) : (
                         <Avatar>{room.roomname.charAt(0).toUpperCase()}</Avatar>
                     )}
@@ -257,7 +277,7 @@ const RoomsList = ({ rooms, handleDelete }) => {
                 </ListItem>
                 <Collapse in={selectedRoom === room} timeout="auto" unmountOnExit>
                     <Typography variant="body2" sx={{ pl: 10, color: 'text.secondary' }}>
-                            {`Date: ${room.date}`}
+                            {`Date: ${dateFormat(room.date)}`}
                             <br/>
                             {room.isPrivate ? "Private Room" : "Public Room"}
                     </Typography>
@@ -297,8 +317,8 @@ const ViewToggle = ({ onViewChange }) => {
 };
 
 const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
+    const [search, setSearch] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-    const [searchResults, setSearchResults] = useState([]);
     const [filters, setFilters] = useState([]);
     const [sortType, setSortType] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -310,7 +330,6 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
         setLoading(true);
         handleGetRooms((data) => {
             setRooms(data);
-            setSearchResults(data);
             setLoading(false);
         });
         const intervalId = setInterval(() => {
@@ -391,16 +410,17 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        const results = rooms.filter((room) =>
-        room.roomname.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setSearchResults(results);
+        setSearch(searchTerm.toLowerCase());
     };
 
     const handleDrawerToggle = () => {
         setDrawerOpen((prevOpen) => !prevOpen);
     };
     
+    const results = rooms.filter((room) =>
+        room.roomname.toLowerCase().includes(search)
+    );
+
     return (
         <Box sx={{ padding: 4 }}>
             <CssBaseline />
@@ -446,8 +466,8 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
                             <CircularProgress />
                         </Box>
                     )}
-                    {!loading && viewType === 'grid' && <RoomsGrid rooms={filter(sort(searchResults))} handleDelete={handleDelete}/>}
-                    {!loading && viewType === 'list' && <RoomsList rooms={filter(sort(searchResults))} handleDelete={handleDelete}/>}
+                    {!loading && viewType === 'grid' && <RoomsGrid rooms={filter(sort(results))} handleDelete={handleDelete}/>}
+                    {!loading && viewType === 'list' && <RoomsList rooms={filter(sort(results))} handleDelete={handleDelete}/>}
                 </Grid>
                 <Grid item xs={12} sm={4} md={4} sx={{ display: { xs: 'none', sm: 'block' } }}>
                     <Sorting sortType={sortType} setSortType={setSortType}/>

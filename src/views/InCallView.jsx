@@ -278,7 +278,7 @@ return (
         handleChat={handleChatOpen} handleParticipants={()=>setSidebar(!sidebar)} 
         notifications={notifications}
         handleNotifications={()=> setIsNotificationsOpen(!isNotificationsOpen)}
-        handleEndCall={handleEndCall} invite={`${window.location.origin}/rooms/invite/${room.id}`} />
+        handleEndCall={handleEndCall} invite={`${window.location.origin}/rooms/invite/${room.id}/${room.isPrivate}`} />
     </Box>
     <NotificationPanel 
         notifications={notifications} 

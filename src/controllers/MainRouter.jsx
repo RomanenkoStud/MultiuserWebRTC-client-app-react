@@ -14,7 +14,7 @@ function MainRouter() {
             <NavBar/>
             <Routes>
                 <Route path="/" element={<HomeView />} />
-                <Route path="/call/:username/:room/*" element={<CallsController />} />
+                <Route path="/call/:username/:room/:private/*" element={<CallsController />} />
                 <Route path="/user/*" element={<UserController />} />
                 <Route path="/rooms/*" element={<RoomController />} />
                 <Route path="/settings/" element={<SettingsController />} />

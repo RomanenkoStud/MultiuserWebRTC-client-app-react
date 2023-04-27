@@ -15,17 +15,71 @@ import ImageModal from "../components/ImageModal";
 import DeleteDialog from "../components/DeleteDialog";
 import RequestStatus from "../components/RequestStatus";
 
-const ProfileView = ({user, handleUpdate, handleDelete}) => {
+function ChangePasswordForm({ handlePasswordUpdate }) {
+    const [passwordForm, setPasswordForm] = useState({
+        password: "",  
+        confirmPassword: "",
+    });
+    const [error, setError] = useState({password: false, confirmPassword: false});
+    const [message, setMessage] = useState({message: "", successful: false, loading: false});
+
+    const handlePasswordChange = (e) => {
+        setPasswordForm({...passwordForm, password: e.target.value});
+    };
+
+    const handleConfirmPasswordChange = (e) => {
+        setPasswordForm({...passwordForm, confirmPassword: e.target.value});
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        handlePasswordUpdate(passwordForm, setPasswordForm, setError, setMessage);
+    };
+
+    return (
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, mb: 2 }}>
+            <TextField
+            error ={error.password}
+            helperText={error.password ? "Error. Too short password" : ""}
+            margin="normal"
+            fullWidth
+            name="password"
+            label="New password"
+            type="password"
+            id="password"
+            autoComplete="new-password"
+            value={passwordForm.password}
+            onChange={handlePasswordChange}
+            />
+            <TextField
+            error ={error.confirmPassword}
+            helperText={error.confirmPassword ? "Error. Input value different from set password" : ""}
+            margin="normal"
+            fullWidth
+            name="confirm-password"
+            label="Confirm new password"
+            type="password"
+            id="confirm-password"
+            value={passwordForm.confirmPassword}
+            onChange={handleConfirmPasswordChange}
+            />
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+            Change Password
+            </Button>
+            <RequestStatus message={message} displayTime={1500}/>
+        </Box>
+    );
+}
+
+const ProfileView = ({user, handleUpdate, handlePasswordUpdate, handleDelete}) => {
     const [userUpdated, setUserUpdated] = useState({
         username: user.username,  
         email: user.email, 
-        password: "", 
+        status: user.status.toLowerCase(), 
         imageUrl: user.imageUrl,
-        confirmPassword: ""
     });
-    const [error, setError] = useState({username: false, email: false, password: false, confirmPassword: false});
+    const [error, setError] = useState({username: false, email: false});
     const [message, setMessage] = useState({message: "", successful: false, loading: false});
-    const [status, setStatus] = useState('Online');
     const [openImageDialog, setOpenImageDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
@@ -36,17 +90,9 @@ const ProfileView = ({user, handleUpdate, handleDelete}) => {
     const handleEmailChange = (e) => {
         setUserUpdated({...userUpdated, email: e.target.value});
     };
-
-    const handlePasswordChange = (e) => {
-        setUserUpdated({...userUpdated, password: e.target.value});
-    };
-
-    const handleConfirmPasswordChange = (e) => {
-        setUserUpdated({...userUpdated, confirmPassword: e.target.value});
-    };
-
+    
     const handleStatusChange = (e) => {
-        setStatus(e.target.value);
+        setUserUpdated({...userUpdated, status: e.target.value});
     };
 
     const getUsernameInitials = (name) => {
@@ -66,7 +112,7 @@ const ProfileView = ({user, handleUpdate, handleDelete}) => {
     return (
         <Container maxWidth="sm">
         <CssBaseline />
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4, mb: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
                 <Avatar
                     sx={{ width: 100, height: 100, position: 'relative', overflow: 'hidden' }}
                     image={userUpdated.imageUrl}
@@ -136,47 +182,21 @@ const ProfileView = ({user, handleUpdate, handleDelete}) => {
                         id="status"
                         label="Status"
                         name="status"
-                        value={status}
+                        value={userUpdated.status}
                         onChange={handleStatusChange}
-                    />
-                    <TextField
-                        error ={error.password}
-                        helperText={error.password ? "Error. Too short password" : ""}
-                        margin="normal"
-                        required
-                        fullWidth
-                        name="password"
-                        label="New password"
-                        type="password"
-                        id="password"
-                        autoComplete="new-password"
-                        value={userUpdated.password}
-                        onChange={handlePasswordChange}
-                    />
-                    <TextField
-                        error ={error.confirmPassword}
-                        helperText={error.confirmPassword ? "Error. Input value different from set password" : ""}
-                        margin="normal"
-                        required
-                        fullWidth
-                        name="confirm-password"
-                        label="Confirm new password"
-                        type="password"
-                        id="confirm-password"
-                        value={userUpdated.confirmPassword}
-                        onChange={handleConfirmPasswordChange}
                     />
                     <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
                         Save changes
                     </Button>
                     <RequestStatus message={message} displayTime={1500}/>
                 </Box>
-                <Button color="error" fullWidth variant="outlined" sx={{ mb: 2 }} 
+            </Box>
+            <ChangePasswordForm handlePasswordUpdate={handlePasswordUpdate}/>
+            <Button color="error" fullWidth variant="outlined" sx={{ mb: 2 }} 
                     onClick={() => setOpenDeleteDialog(true)}
                 >
                     Delete profile
-                </Button>
-            </Box>
+            </Button>
             <ImageModal 
                 open={openImageDialog} 
                 handleClose={()=>setOpenImageDialog(false)} 

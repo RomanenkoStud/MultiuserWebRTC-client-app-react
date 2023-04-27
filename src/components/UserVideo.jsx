@@ -5,7 +5,6 @@ import {
     Chip, 
     Box, 
     Avatar, 
-    Typography
 } from '@mui/material';
 import { Mic, MicOff as MicOffIcon} from '@mui/icons-material';
 import { useSpeakingDetector } from "../hooks/useSpeakingDetector";
@@ -32,9 +31,9 @@ function UserVideoPlaceholder({user, children}) {
                         width: '100%',
                         height: '100%',
                     }}/>
-                ) : (
-                    <Typography sx={{ fontSize: 40 }}>{user.username.charAt(0)}</Typography>
-                )}
+                ) : 
+                    user.username.charAt(0).toUpperCase()
+                }
             </Avatar>
             {children}
         </Box>

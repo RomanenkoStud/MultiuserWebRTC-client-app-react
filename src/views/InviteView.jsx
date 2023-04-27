@@ -8,19 +8,18 @@ import {
     Typography,
     Container,
 } from '@mui/material';
-import RequestStatus from "../components/RequestStatus";
 
 
 export default function InviteView({user, handleConnect}) {
     const [username, setUsername] = useState(user ? user.username : "");
     const [error, setError] = useState({username: false});
-    const [message, setMessage] = useState({message: "", successful: false, loading: false});
     const params = useParams();
     const room = params.room;
+    const isPrivate = params.private;
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        handleConnect(username, room, setError, setMessage);
+        handleConnect(username, room, isPrivate, setError);
     };
 
     return (
@@ -50,7 +49,7 @@ export default function InviteView({user, handleConnect}) {
                     name="user"
                     autoFocus
                     value={username}
-                    InputProps={{ readOnly: user }}
+                    InputProps={{ readOnly: user ? true : false }}
                     onInput={(e) => {
                             setUsername(e.target.value)
                         }
@@ -64,7 +63,6 @@ export default function InviteView({user, handleConnect}) {
                 >
                     Connect
                 </Button>
-                <RequestStatus message={message}/>
             </Box>
         </Box>
     </Container>

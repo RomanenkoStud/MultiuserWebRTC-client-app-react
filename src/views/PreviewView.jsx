@@ -7,7 +7,8 @@ import {
     Button, 
     FormGroup, 
     FormControlLabel, 
-    Checkbox 
+    Checkbox,
+    TextField
 } from '@mui/material';
 import { 
     Camera, 
@@ -15,7 +16,8 @@ import {
 }  from "../components/UserMediaInputs/UserMediaInputs";
 import RequestStatus from "../components/RequestStatus";
 
-function PreviewView({settings, onSettings, onStart, user}) {
+function PreviewView({settings, onSettings, onStart, user, isPrivate}) {
+const [roomPassword, setRoomPassword] = useState('');
 const [message, setMessage] = useState({message: "", successfull: false, loading: false});
 const [stream, setStream] = useState(null);
 const latestStreamValue = useRef(null);
@@ -42,10 +44,9 @@ useEffect(() => {
     };
 }, [stream]);
 
-
-const handleStartCall = () => {
-    onStart(setMessage);
-}
+const handleRoomPasswordChange = (event) => {
+    setRoomPassword(event.target.value);
+};
 
 const renderCamera = () => {
     if(settings.blur && settings.cam) {
@@ -78,6 +79,11 @@ const handleChange = (event) => {
     onSettings(name, checked);
 };
 
+const handleSubmit = (event) => {
+    event.preventDefault();
+    onStart(roomPassword, setMessage);
+};
+
 return (
     <Container component="main" maxWidth='xl'>
     <CssBaseline />
@@ -89,15 +95,15 @@ return (
                 alignItems: 'center',
                 }}
     >
-    <Container maxWidth='xl'>
-    <Grid container spacing={1} justifyContent="center">
-        {/* Main */}
-        <Grid item xs={12} sm={6} md={4}>
-        {renderCamera()}
+        <Container maxWidth='xl'>
+        <Grid container spacing={1} justifyContent="center">
+            {/* Main */}
+            <Grid item xs={12} sm={6} md={3}>
+            {renderCamera()}
+            </Grid>
         </Grid>
-    </Grid>
-    
-    </Container>
+        
+        </Container>
         <FormGroup style={{ display: 'inline-flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <FormControlLabel
             control={<Checkbox checked={settings.cam} onChange={handleChange} name="cam" />}
@@ -112,17 +118,31 @@ return (
             label="Background Blur"
             />
         </FormGroup>
-        {message.message ? (
-            <RequestStatus message={message}/>
-        ) : (
-            <Button
-                onClick={handleStartCall}
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+        {isPrivate&&(<TextField
+            margin="normal"
+            fullWidth
+            id="room-password"
+            label="Room Password"
+            name="room-password"
+            autoComplete="off"
+            type="password"
+            value={roomPassword}
+            sx={{ mb: 2 }}
+            onChange={handleRoomPasswordChange}
+        />)}
+        <Button
+                fullWidth
+                type="submit"
                 variant="contained"
                 sx={{ mb: 2 }}
             >
                 Start call
-            </Button>
+        </Button>
+        {message.message && (
+            <RequestStatus message={message}/>
         )}
+        </Box>
     </Box>
     </Container>
 );

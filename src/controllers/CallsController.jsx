@@ -13,6 +13,7 @@ export default function CallsController() {
   const params = useParams();
   const username = params.username;
   const roomId = params.room;
+  const isPrivate = params.private === "true";
   const { navigate } = useLogoAnimation();
   const [inCall, setInCall] = useState(false);
   const settings = useSelector((state) => state.settings.config);
@@ -22,8 +23,8 @@ export default function CallsController() {
   const user = useSelector((state) => state.auth.user);
   const userInfo = isLoggedIn ? user : {id: username, username: username, imageUrl: null};
 
-  const onStart = (setMessage) => {
-    roomService.join(username, roomId).then(
+  const onStart = (password, setMessage) => {
+    roomService.join(username, roomId, password).then(
       (response) => {
           setMessage({message: "Successful", successful: true, loading: false});
           setTimeout(() => {
@@ -31,7 +32,7 @@ export default function CallsController() {
           }, 1000); // 3 second message delay
       },
       (error) => {
-          setMessage({message: error, successful: false, loading: false});
+          setMessage({message: error.response.data, successful: false, loading: false});
       }
     );
   }
@@ -44,7 +45,7 @@ export default function CallsController() {
     roomService.leave(username, roomId).then(
       (response) => {
         setInCall(false);
-        navigate(`/call/${username}/${roomId}/rate`);
+        navigate(`/call/${username}/${roomId}/${isPrivate}/rate`);
       },
       (error) => {
 
@@ -53,7 +54,7 @@ export default function CallsController() {
   }
 
   const onReturn = () => {
-    navigate(`/call/${username}/${roomId}`);
+    navigate(`/call/${username}/${roomId}/${isPrivate}`);
   }
 
   const onRating = () => {
@@ -63,7 +64,7 @@ export default function CallsController() {
   const CallView = inCall ? (
         <InCallView user={userInfo} room={{id: roomId}} settings={settings} onEnd={onEnd}/>
       ) : (
-        <PreviewView user={userInfo} room={{id: roomId}} settings={settings} onSettings={onSettings} onStart={onStart}/>
+        <PreviewView user={userInfo} isPrivate={isPrivate} settings={settings} onSettings={onSettings} onStart={onStart}/>
       );
 
   return (

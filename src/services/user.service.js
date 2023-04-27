@@ -19,11 +19,12 @@ class UserService {
         return axios.get(`${this.apiUrl}/${id}`);
     }
 
-    async update({id, username, email, password, imageUrl, token}) {
+    async update({id, username, email, password, status, imageUrl, token}) {
         return axios.put(`${this.apiUrl}/${id}`, {
             username,
             email,
             password,
+            status,
             imageUrl
         }, { headers: authHeader(token) });
     }

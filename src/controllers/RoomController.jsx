@@ -6,6 +6,7 @@ import ConnectView from "../views/ConnectView";
 import { useSelector } from "react-redux";
 import PrivateRoute from "../components/PrivateRoute";
 import InviteView from "../views/InviteView";
+import NotFoundView from "../views/NotFoundView";
 import { useLogoAnimation } from "../hooks/useLogoAnimation";
 import roomService from "../services/room.service";
 
@@ -14,15 +15,31 @@ const RoomController = () => {
     const user = useSelector((state) => state.auth.user);
     const { navigate } = useLogoAnimation();
 
+    const roomInfoMap = (room) => {
+        return {
+            id: room.id,
+            roomname: room.name,
+            maxUsers: room.maxUsers,
+            isPrivate: room.private,
+            date : room.dateCreation,
+            users: room.connectedUsers,
+        }
+    }
+
     const handleCreate = (room, setError, setMessage) => {
         const roomError = room.roomName.length >= 8 ? false : true;
         setError(roomError);
         if(!roomError) {
             setMessage({loading: true});
-            roomService.create(room, user.token).then(
+            roomService.create({
+                name: room.roomName,
+                numberOfUsers: room.maxUsers,
+                private: room.isPrivate,
+                password : room.password
+            }, user.token).then(
                 (response) => {
                     setMessage({successful: true, loading: false});
-                    navigate(`/rooms/connect/${room.roomName}`);
+                    navigate(`/rooms/user`);
                 },
                 (error) => {
                     
@@ -34,7 +51,8 @@ const RoomController = () => {
     const handleGetRooms = useCallback((setRooms) => {
         roomService.getRooms().then(
             (response) => {
-                setRooms(response);
+                const rooms = response.data.content.map(roomInfoMap)
+                setRooms(rooms);
             },
             (error) => {
                 // handle error
@@ -45,7 +63,8 @@ const RoomController = () => {
     const handleGetUserRooms = useCallback((setRooms) => {
         roomService.getUserRooms(user.id, user.token).then(
             (response) => {
-                setRooms(response);
+                const rooms = response.data.content.map(roomInfoMap)
+                setRooms(rooms);
             },
             (error) => {
                 
@@ -53,10 +72,11 @@ const RoomController = () => {
         );
     }, [user]);
 
-    const handleDelete = (room, onDelete) => {
-        roomService.delete(room.id, user.token).then(
+    const handleDelete = (roomId) => {
+        console.log("delete ", roomId)
+        roomService.delete(roomId, user.token).then(
             (response) => {
-                onDelete();
+
             },
             (error) => {
                 
@@ -64,16 +84,17 @@ const RoomController = () => {
         );
     }
 
-    const handleConnect = (username, room, setError, setMessage) => {
+    const handleConnect = (username, roomname, setError, setMessage) => {
         const usernameError = username.length >= 8 ? false : true;
-        const roomError = room.length >= 8 ? false : true;
+        const roomError = roomname.length >= 8 ? false : true;
         setError({username: usernameError, room: roomError});
         if(!usernameError && !roomError) {
             setMessage({loading: true});
-            roomService.getId(room).then(
+            roomService.getId(roomname).then(
                 (response) => {
+                    const room = response.data;
                     setMessage({successful: true, loading: false});
-                    navigate(`/call/${username}/${response}`);
+                    navigate(`/call/${username}/${room.id}/${room.private}`);
                 },
                 (error) => {
                     
@@ -82,20 +103,11 @@ const RoomController = () => {
         }
     };
 
-    const handleInvite = (username, room, setError, setMessage) => {
+    const handleInvite = (username, roomId, isPrivate, setError) => {
         const usernameError = username.length >= 8 ? false : true;
         setError({username: usernameError});
         if(!usernameError) {
-            setMessage({loading: true});
-            roomService.getId(room).then(
-                (response) => {
-                    setMessage({successful: true, loading: false});
-                    navigate(`/call/${username}/${room}`);
-                },
-                (error) => {
-                    
-                }
-            );
+            navigate(`/call/${username}/${roomId}/${isPrivate}`);
         }
     };
 
@@ -109,8 +121,8 @@ const RoomController = () => {
                 <PrivateRoute component={CreateRoomView} handleCreate={handleCreate}/>
             } />
             <Route path="/connect" element={<ConnectView user={user} handleConnect={handleConnect}/>} />
-            <Route path="/connect/:room" element={<ConnectView user={user} handleConnect={handleConnect}/>} />
-            <Route path="/invite/:room" element={<InviteView user={user} handleConnect={handleInvite}/>} />
+            <Route path="/invite/:room/:private" element={<InviteView user={user} handleConnect={handleInvite}/>} />
+            <Route path="*" element={<NotFoundView />} />
         </Routes>
     );
 };
