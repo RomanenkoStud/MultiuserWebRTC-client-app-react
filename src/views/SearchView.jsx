@@ -72,14 +72,12 @@ const FilterChips = ({filters, setFilters, clear}) => {
     const handleClearFilters = () => {
         setFilters([]);
     };
-
-    const randomId = Math.random().toString(36).substring(2, 8); // Generates a random string of 6 characters
     
     return (
         <Box sx={{ display: "flex", flexWrap: "wrap" }}>
             {filters.map((filter) => (
                 <Chip
-                key={filter.id + '_' + randomId}
+                key={`${filter.label}: ${filter.value}`}
                 label={`${filter.label}: ${filter.value}`}
                 onDelete={() => handleFilterDelete(filter)}
                 sx={{ marginRight: 1, marginBottom: 1 }}
@@ -185,8 +183,22 @@ const Sorting = ({sortType, setSortType}) => {
     );
 }
 
+const NoRoomsFound = () => {
+    return (
+        <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+        <Typography variant="h8" sx={{ mt: 4 }}>
+            No rooms found.
+        </Typography>
+        </Box>
+    );
+};
+
 const RoomsGrid = ({rooms, handleDelete}) => {
     const { navigate } = useLogoAnimation();
+
+    if(!rooms.length) {
+        return (<NoRoomsFound/>);
+    }
 
     return (
         <Grid container spacing={3} sx={{ marginTop: 2 }}>
@@ -208,7 +220,7 @@ const RoomsGrid = ({rooms, handleDelete}) => {
                         </Typography>
                         <AvatarGroup max={4} sx={{height: 44}}>
                             {room.users?.map((user) => (
-                                <UserAvatar user={user}/>
+                                <UserAvatar key={user.username} user={user}/>
                             ))}
                         </AvatarGroup>
                     </CardContent>
@@ -238,6 +250,10 @@ const RoomsList = ({ rooms, handleDelete }) => {
     const handleRoomClick = (room) => {
         setSelectedRoom(selectedRoom === room ? null : room);
     };
+
+    if(!rooms.length) {
+        return (<NoRoomsFound/>);
+    }
 
     return (
         <List sx={{ marginTop: 2 }}>
@@ -346,9 +362,19 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
             case "name-desc":
                 return sortedResults.sort((a, b) => b.roomname.localeCompare(a.roomname));
             case "users-asc":
-                return sortedResults.sort((a, b) => a.users.length - b.users.length);
+                return sortedResults.sort((a, b) => {
+                    if (!a.users && !b.users) return 0;
+                    if (!a.users) return -1;
+                    if (!b.users) return 1;
+                    return a.users.length - b.users.length;
+                });
             case "users-desc":
-                return sortedResults.sort((a, b) => b.users.length - a.users.length);
+                return sortedResults.sort((a, b) => {
+                    if (!a.users && !b.users) return 0;
+                    if (!a.users) return 1;
+                    if (!b.users) return -1;
+                    return b.users.length - a.users.length;
+                });
             default:
                 return sortedResults;
         }
@@ -385,7 +411,7 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
                         }
                     }
                 } else if (filter.id === 'participants') {
-                    if (room.users.length === parseInt(filter.value)) {
+                    if (room.users?.length === parseInt(filter.value)) {
                         participantsCheck = true; 
                     }
                 }

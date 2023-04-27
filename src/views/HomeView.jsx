@@ -217,9 +217,9 @@ const ShuffleList = ({ list, interval }) => {
     return (
         <Grid container spacing={3} justifyContent="center">
         {trail.map((styles, index) => (
-        <Grid item xs={8} md={4} key={list[index].title}>
+        <Grid item xs={8} sm={5} md={4} key={list[index].title}>
             <animated.div style={styles}>
-            <Card sx={{ maxWidth: 345 }}>
+            <Card>
                 <CardContent>
                 <Icon style={{ fontSize: '4rem', marginBottom: '1rem' }}>{list[index].icon}</Icon>
                 <Typography variant="h5" gutterBottom>
