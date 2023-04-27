@@ -72,12 +72,14 @@ const FilterChips = ({filters, setFilters, clear}) => {
     const handleClearFilters = () => {
         setFilters([]);
     };
+
+    const randomId = Math.random().toString(36).substring(2, 8); // Generates a random string of 6 characters
     
     return (
         <Box sx={{ display: "flex", flexWrap: "wrap" }}>
             {filters.map((filter) => (
                 <Chip
-                key={filter.id}
+                key={filter.id + '_' + randomId}
                 label={`${filter.label}: ${filter.value}`}
                 onDelete={() => handleFilterDelete(filter)}
                 sx={{ marginRight: 1, marginBottom: 1 }}
@@ -113,8 +115,6 @@ const Filters = ({ appliedFilters, addFilters }) => {
         setFilters([]);
     };
     
-    const randomId = Math.random().toString(36).substring(2, 8); // Generates a random string of 6 characters
-    
     return (
     <Box>
         {filterTypes.map((filterType) => (
@@ -125,7 +125,7 @@ const Filters = ({ appliedFilters, addFilters }) => {
             labelId={`${filterType.id}-select-label`}
             id={`${filterType.id}-select`}
             value={filters.find((filter) => filter.id === filterType.id)?.value || ""}
-            onChange={(e) => handleFilterAdd({ label: filterType.label, id: filterType.id + '_' + randomId, value: e.target.value })}
+            onChange={(e) => handleFilterAdd({ label: filterType.label, id: filterType.id, value: e.target.value })}
             >
             {filterType.options.map((option) => {
                 const selectedFilter = [...appliedFilters, ...filters].find((filter) => filter.id === filterType.id && filter.value === option);
@@ -246,7 +246,7 @@ const RoomsList = ({ rooms, handleDelete }) => {
                 <ListItem
                 secondaryAction={
                     <IconButton edge="end" aria-label="comments" 
-                        onClick={()=>navigate(`/rooms/connect/${room.roomname}/${room.isPrivate}`)}
+                        onClick={()=>navigate(`/rooms/invite/${room.id}/${room.isPrivate}`)}
                     >
                         <DuoIcon />
                     </IconButton>
@@ -417,9 +417,9 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
         setDrawerOpen((prevOpen) => !prevOpen);
     };
     
-    const results = rooms.filter((room) =>
-        room.roomname.toLowerCase().includes(search)
-    );
+    const results = filter(sort(
+        rooms.filter((room) => room.roomname.toLowerCase().includes(search))
+    ));
 
     return (
         <Box sx={{ padding: 4 }}>
@@ -466,8 +466,8 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
                             <CircularProgress />
                         </Box>
                     )}
-                    {!loading && viewType === 'grid' && <RoomsGrid rooms={filter(sort(results))} handleDelete={handleDelete}/>}
-                    {!loading && viewType === 'list' && <RoomsList rooms={filter(sort(results))} handleDelete={handleDelete}/>}
+                    {!loading && viewType === 'grid' && <RoomsGrid rooms={results} handleDelete={handleDelete}/>}
+                    {!loading && viewType === 'list' && <RoomsList rooms={results} handleDelete={handleDelete}/>}
                 </Grid>
                 <Grid item xs={12} sm={4} md={4} sx={{ display: { xs: 'none', sm: 'block' } }}>
                     <Sorting sortType={sortType} setSortType={setSortType}/>

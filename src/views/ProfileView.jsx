@@ -75,7 +75,7 @@ const ProfileView = ({user, handleUpdate, handlePasswordUpdate, handleDelete}) =
     const [userUpdated, setUserUpdated] = useState({
         username: user.username,  
         email: user.email, 
-        status: user.status.toLowerCase(), 
+        status: user.status, 
         imageUrl: user.imageUrl,
     });
     const [error, setError] = useState({username: false, email: false});
