@@ -60,7 +60,7 @@ export default function CallsController() {
   }
 
   const onRating = () => {
-    
+    navigate(`/`);
   }
 
   const CallView = inCall ? (

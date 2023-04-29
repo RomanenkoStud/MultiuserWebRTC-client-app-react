@@ -29,7 +29,8 @@ import {
     ToggleButtonGroup,
     ToggleButton,
     Collapse,
-    CircularProgress 
+    CircularProgress,
+    Pagination 
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
@@ -342,6 +343,9 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
     const [rooms, setRooms] = useState([]);
     const [loading, setLoading] = useState(true);
     
+    const [perPage, setPerPage] = useState(6);
+    const [currentPage, setCurrentPage] = useState(1);
+
     useEffect(() => {
         setLoading(true);
         handleGetRooms((data) => {
@@ -443,9 +447,13 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
         setDrawerOpen((prevOpen) => !prevOpen);
     };
     
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
     const results = filter(sort(
         rooms.filter((room) => room.roomname.toLowerCase().includes(search))
-    ));
+    )).slice((currentPage - 1) * perPage, currentPage * perPage);
 
     return (
         <Box sx={{ padding: 4 }}>
@@ -494,6 +502,14 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
                     )}
                     {!loading && viewType === 'grid' && <RoomsGrid rooms={results} handleDelete={handleDelete}/>}
                     {!loading && viewType === 'list' && <RoomsList rooms={results} handleDelete={handleDelete}/>}
+                    <Pagination
+                        count={Math.ceil(rooms.length / perPage)}
+                        page={currentPage}
+                        onChange={handlePageChange}
+                        color="primary"
+                        size="large"
+                        sx={{ mt: 2, display: "flex", justifyContent: "center" }}
+                    />
                 </Grid>
                 <Grid item xs={12} sm={4} md={4} sx={{ display: { xs: 'none', sm: 'block' } }}>
                     <Sorting sortType={sortType} setSortType={setSortType}/>
