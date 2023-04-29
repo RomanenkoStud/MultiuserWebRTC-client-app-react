@@ -16,8 +16,8 @@ import {
 }  from "../components/UserMediaInputs/UserMediaInputs";
 import RequestStatus from "../components/RequestStatus";
 
-function PreviewView({settings, onSettings, onStart, user, isPrivate}) {
-const [roomPassword, setRoomPassword] = useState('');
+function PreviewView({settings, onSettings, onStart, onJoin, user, room, socket}) {
+const [roomPassword, setRoomPassword] = useState({enabled: false, value:""});
 const [message, setMessage] = useState({message: "", successfull: false, loading: false});
 const [stream, setStream] = useState(null);
 const latestStreamValue = useRef(null);
@@ -45,7 +45,7 @@ useEffect(() => {
 }, [stream]);
 
 const handleRoomPasswordChange = (event) => {
-    setRoomPassword(event.target.value);
+    setRoomPassword((prev) => ({ ...prev, value: event.target.value }));
 };
 
 const renderCamera = () => {
@@ -81,8 +81,29 @@ const handleChange = (event) => {
 
 const handleSubmit = (event) => {
     event.preventDefault();
-    onStart(roomPassword, setMessage);
+    setMessage((prev) => ({ ...prev, loading: true }));
+    if(roomPassword.enabled) {
+        socket.current.emit("join_with_password", { username: user.username, room: room, password: roomPassword.value });
+    } else {
+        socket.current.emit("join", { username: user.username, room: room });
+    }
 };
+
+useEffect(() => {
+    onStart()
+    socket.current.connect();
+    socket.current.on('password', () => {
+        setRoomPassword((prev) => ({ ...prev, enabled: true }));
+        setMessage((prev) => ({ ...prev, loading: false }));
+    });
+    socket.current.on('joined', () => {
+        setMessage((prev) => ({ ...prev, successfull: true, loading: false }));
+        onJoin()
+    });
+    socket.current.on('join_error', (error) => {
+        setMessage({ message: error, successfull: false, loading: false });
+    });
+}, [socket, onStart, onJoin]);
 
 return (
     <Container component="main" maxWidth='xl'>
@@ -119,30 +140,29 @@ return (
             />
         </FormGroup>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-        {isPrivate&&(<TextField
-            margin="normal"
-            fullWidth
-            id="room-password"
-            label="Room Password"
-            name="room-password"
-            autoComplete="off"
-            type="password"
-            value={roomPassword}
-            sx={{ mb: 2 }}
-            onChange={handleRoomPasswordChange}
-        />)}
-        <Button
+            {roomPassword.enabled&&(<TextField
+                margin="normal"
                 fullWidth
-                type="submit"
-                variant="contained"
+                id="room-password"
+                label="Room Password"
+                name="room-password"
+                autoComplete="off"
+                type="password"
+                value={roomPassword.value}
                 sx={{ mb: 2 }}
-            >
-                Start call
-        </Button>
-        {message.message && (
+                onChange={handleRoomPasswordChange}
+            />)}
+            <Button
+                    fullWidth
+                    type="submit"
+                    variant="contained"
+                    sx={{ mb: 2 }}
+                    disabled={message.loading}
+                >
+                Connect
+            </Button>
             <RequestStatus message={message}/>
-        )}
-        </Box>
+            </Box>
     </Box>
     </Container>
 );

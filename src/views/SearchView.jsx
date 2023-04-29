@@ -226,7 +226,7 @@ const RoomsGrid = ({rooms, handleDelete}) => {
                     </CardContent>
                     <CardActions>
                         <Button  variant="outlined" color="primary" 
-                            onClick={()=>navigate(`/rooms/invite/${room.id}/${room.isPrivate}`)}
+                            onClick={()=>navigate(`/rooms/invite/${room.id}`)}
                         >
                             Join
                         </Button>
@@ -262,7 +262,7 @@ const RoomsList = ({ rooms, handleDelete }) => {
                 <ListItem
                 secondaryAction={
                     <IconButton edge="end" aria-label="comments" 
-                        onClick={()=>navigate(`/rooms/invite/${room.id}/${room.isPrivate}`)}
+                        onClick={()=>navigate(`/rooms/invite/${room.id}`)}
                     >
                         <DuoIcon />
                     </IconButton>

@@ -1,19 +1,25 @@
 import { useParams } from "react-router-dom";
 import { Route, Routes } from 'react-router-dom';
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLogoAnimation } from "../hooks/useLogoAnimation";
 import InCallView from "../views/InCallView";
 import PreviewView from "../views/PreviewView";
 import AfterCallView from "../views/AfterCallView";
 import { useDispatch, useSelector } from "react-redux";
 import { changeConfig } from "../store/slices/settingsSlice";
-import roomService from "../services/room.service";
+import socketio from "socket.io-client";
+
+const connectionOptions = {
+    autoConnect: false,
+};
+
+//const host = "http://localhost:8000/";
+const host = "https://azure-flask-socketio.azurewebsites.net/";
 
 export default function CallsController() {
   const params = useParams();
   const username = params.username;
   const roomId = params.room;
-  const isPrivate = params.private === "true";
   const { navigate } = useLogoAnimation();
   const [inCall, setInCall] = useState(false);
   const settings = useSelector((state) => state.settings.config);
@@ -23,18 +29,20 @@ export default function CallsController() {
   const user = useSelector((state) => state.auth.user);
   const userInfo = isLoggedIn ? user : {id: username, username: username, imageUrl: null};
 
-  const onStart = (password, setMessage) => {
-    roomService.join(username, roomId, password).then(
-      (response) => {
-          setMessage({message: "Successful", successful: true, loading: false});
-          setTimeout(() => {
-            setInCall(true);
-          }, 1000); // 3 second message delay
-      },
-      (error) => {
-          setMessage({message: error.response.data, successful: false, loading: false});
-      }
-    );
+  const socket = useRef(socketio(host, connectionOptions));
+  useEffect(() => {
+    const socketRef = socket.current;
+    return function cleanup() {
+      socketRef.emit("leave", {room: roomId});
+    };
+  }, [roomId]);
+
+  const onStart = () => {
+    socket.current.connect();
+  }
+
+  const onJoin = () => {
+    setInCall(true);
   }
 
   const onSettings = (name, checked) => {
@@ -42,19 +50,13 @@ export default function CallsController() {
   }
 
   const onEnd = () => {
-    roomService.leave(username, roomId).then(
-      (response) => {
-        setInCall(false);
-        navigate(`/call/${username}/${roomId}/${isPrivate}/rate`);
-      },
-      (error) => {
-
-      }
-    );
+    setInCall(false);
+    socket.current.emit("leave", {room: roomId});
+    navigate(`/call/${username}/${roomId}/rate`);
   }
 
   const onReturn = () => {
-    navigate(`/call/${username}/${roomId}/${isPrivate}`);
+    navigate(`/call/${username}/${roomId}`);
   }
 
   const onRating = () => {
@@ -62,9 +64,22 @@ export default function CallsController() {
   }
 
   const CallView = inCall ? (
-        <InCallView user={userInfo} room={{id: roomId}} settings={settings} onEnd={onEnd}/>
+        <InCallView 
+        socket={socket} 
+        user={userInfo} 
+        room={roomId} 
+        settings={settings} 
+        onEnd={onEnd}/>
       ) : (
-        <PreviewView user={userInfo} isPrivate={isPrivate} settings={settings} onSettings={onSettings} onStart={onStart}/>
+        <PreviewView 
+        socket={socket} 
+        user={userInfo} 
+        room={roomId} 
+        settings={settings} 
+        onSettings={onSettings} 
+        onStart={onStart}
+        onJoin={onJoin}
+        />
       );
 
   return (

@@ -15,11 +15,10 @@ export default function InviteView({user, handleConnect}) {
     const [error, setError] = useState({username: false});
     const params = useParams();
     const room = params.room;
-    const isPrivate = params.private;
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        handleConnect(username, room, isPrivate, setError);
+        handleConnect(username, room, setError);
     };
 
     return (

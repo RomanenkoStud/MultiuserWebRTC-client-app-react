@@ -1,9 +1,5 @@
 import { useRef, useEffect, useReducer } from "react";
-import socketio from "socket.io-client";
 
-const connectionOptions = {
-    autoConnect: false,
-};
 const STUN_SERVERS = {
     iceServers: [
         {
@@ -149,11 +145,11 @@ const remoteStreamsReducer = (state, action) => {
     }
 }
 
-export const useWebRTC = (host, user, roomId, settings, addNotification) => {
-    const socket = useRef(null);
+export const useWebRTC = (socket, user, roomId, settings, addNotification) => {
     const pc = useRef({}); // For RTCPeerConnection Objects
     const dataChannel = useRef({}); 
     const usersInfo = useRef({}); 
+    const isLive = useRef(false); 
     const [localStreamState, localStreamDispatch] = useReducer(localStreamReducer, 
         {stream: false, desk: false, mic: settings.mic, cam: settings.cam});
     const [remoteStreamsState, remoteStreamsDispatch] = useReducer(remoteStreamsReducer,
@@ -175,18 +171,7 @@ export const useWebRTC = (host, user, roomId, settings, addNotification) => {
         );
 
     useEffect(() => {
-        const handleTabClosing = (event) => {
-            event.preventDefault();
-            endConnection.current();
-        }
-        window.addEventListener('beforeunload', handleTabClosing);
-        socket.current = socketio(host, connectionOptions);
-        socket.current.on("room_full", () => {
-            console.log("Room is full!");
-            localStreamDispatch({type: 'end'});
-            endConnection.current();
-        });
-        socket.current.on("leave", (sid) => {
+        socket.current.on("end", (sid) => {
             console.log("Disconnect!");
             addNotification(usersInfo.current[sid].username + " left", 'info');
             pc.current[sid].close();
@@ -200,9 +185,8 @@ export const useWebRTC = (host, user, roomId, settings, addNotification) => {
         });
         return function cleanup() {
             endConnection.current();
-            window.removeEventListener('beforeunload', handleTabClosing);
         };
-    }, [host, addNotification]);
+    }, [socket, addNotification]);
 
     useEffect(() => {
         const sendData = (data, sid) => {
@@ -323,8 +307,7 @@ export const useWebRTC = (host, user, roomId, settings, addNotification) => {
             if(localStreamState.desk) {
                 endStream(localStreamState.desk);
             }
-            socket.current.emit("leave", {room: roomId});
-            socket.current.close();
+            socket.current.emit("end_connection", {room: roomId});
             for (let sid in pc.current) {
             pc.current[sid].close();
             }
@@ -378,17 +361,16 @@ export const useWebRTC = (host, user, roomId, settings, addNotification) => {
                 signalingDataHandler(data, sid);
             });
         }
-    }, [localStreamState.stream, localStreamState.desk, addNotification, user, roomId]);
+    }, [socket, localStreamState.stream, localStreamState.desk, addNotification, user, roomId]);
 
     useEffect(() => {
-        if(localStreamState.stream && !socket.current.connected){
-            socket.current.connect();
-            socket.current.emit("join", { user: user, room: roomId });
+        if(localStreamState.stream && !isLive.current){
+            socket.current.emit("start_connection", { user: user, room: roomId });
+            isLive.current = true;
         }
-    }, [localStreamState.stream, user, roomId]);
+    }, [socket, localStreamState.stream, user, roomId]);
 
     return {
-        socket,
         localStreamState, 
         remoteStreamsState, 
         usersInfo,

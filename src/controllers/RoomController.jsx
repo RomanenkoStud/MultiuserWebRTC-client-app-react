@@ -84,30 +84,19 @@ const RoomController = () => {
         );
     }
 
-    const handleConnect = (username, roomname, setError, setMessage) => {
-        const usernameError = username.length >= 8 ? false : true;
-        const roomError = roomname.length >= 8 ? false : true;
-        setError({username: usernameError, room: roomError});
-        if(!usernameError && !roomError) {
-            setMessage({loading: true});
-            roomService.getId(roomname).then(
-                (response) => {
-                    const room = response.data;
-                    setMessage({successful: true, loading: false});
-                    navigate(`/call/${username}/${room.id}/${room.private}`);
-                },
-                (error) => {
-                    
-                }
-            );
-        }
-    };
-
-    const handleInvite = (username, roomId, isPrivate, setError) => {
+    const handleConnect = (username, roomId, setError) => {
         const usernameError = username.length >= 8 ? false : true;
         setError({username: usernameError});
         if(!usernameError) {
-            navigate(`/call/${username}/${roomId}/${isPrivate}`);
+            navigate(`/call/${username}/${roomId}/`);
+        }
+    };
+
+    const handleInvite = (username, roomId, setError) => {
+        const usernameError = username.length >= 8 ? false : true;
+        setError({username: usernameError});
+        if(!usernameError) {
+            navigate(`/call/${username}/${roomId}/`);
         }
     };
 
@@ -121,7 +110,7 @@ const RoomController = () => {
                 <PrivateRoute component={CreateRoomView} handleCreate={handleCreate}/>
             } />
             <Route path="/connect" element={<ConnectView user={user} handleConnect={handleConnect}/>} />
-            <Route path="/invite/:room/:private" element={<InviteView user={user} handleConnect={handleInvite}/>} />
+            <Route path="/invite/:room/" element={<InviteView user={user} handleConnect={handleInvite}/>} />
             <Route path="*" element={<NotFoundView />} />
         </Routes>
     );

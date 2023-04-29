@@ -7,18 +7,16 @@ import {
     Typography, 
     Container,
 } from '@mui/material';
-import RequestStatus from "../components/RequestStatus";
 
 
 export default function ConnectView({user, handleConnect}) {
-    const [roomname, setRoom] = useState("");
+    const [roomId, setRoom] = useState("");
     const [username, setUsername] = useState(user ? user.username : "");
-    const [error, setError] = useState({username: false, room: false});
-    const [message, setMessage] = useState({message: "", successfull: false, loading: false});
+    const [error, setError] = useState({username: false});
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        handleConnect(username, roomname, setError, setMessage);
+        handleConnect(username, roomId, setError);
     };
 
     return (
@@ -55,8 +53,6 @@ export default function ConnectView({user, handleConnect}) {
                     }
                 />
                 <TextField
-                    error ={error.room}
-                    helperText={error.room ? "Error. Too short room name" : ""}
                     margin="normal"
                     required
                     fullWidth
@@ -64,7 +60,13 @@ export default function ConnectView({user, handleConnect}) {
                     label="Room"
                     type="text"
                     id="room"
-                    value={roomname}
+                    value={roomId}
+                    onKeyPress={(e) => {
+                        const keyValue = e.key;
+                        if (!/^[0-9]*$/i.test(keyValue)) {
+                            e.preventDefault();
+                        }
+                    }}
                     onInput={(e) => {
                             setRoom(e.target.value)
                         }
@@ -78,7 +80,6 @@ export default function ConnectView({user, handleConnect}) {
                 >
                     Connect
                 </Button>
-                <RequestStatus message={message}/>
             </Box>
         </Box>
     </Container>

@@ -17,12 +17,9 @@ import {
     ScreenSharing
 }  from "../components/UserMediaInputs/UserMediaInputs";
 import { useWebRTC } from "../hooks/useWebRTC";
-import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+//import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import Carousel from 'react-material-ui-carousel';
 import NotificationPanel from "../components/NotificationPanel";
-
-//const host = "http://localhost:8000/";
-const host = "https://azure-flask-socketio.azurewebsites.net/";
 
 const userVideo = (user, userInfo) => {
     return (<UserVideo stream={user.stream} user={userInfo}/>);
@@ -127,7 +124,7 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk, usersInfo}) {
     </Grid>);
 }
 
-function InCallView({user, room, settings, onEnd}) {
+function InCallView({socket, user, room, settings, onEnd}) {
 const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 const [notifications, setNotifications] = useState([]);
 const addNotification = useCallback((message, severity, link) => {
@@ -143,7 +140,6 @@ const removeNotification = (id) => {
 };
 const [useBlur, setUseBlur] = useState(settings.blur);
 const { 
-    socket, 
     localStreamState, 
     remoteStreamsState, 
     usersInfo,
@@ -152,18 +148,19 @@ const {
     handleAudio, 
     setDeskStream, 
     endConnection
-    } = useWebRTC(host, user, room.id, settings, addNotification);
+    } = useWebRTC(socket, user, room, settings, addNotification);
 const [chatOpen, setChatOpen] = useState(false);
 const [deskState, setDeskState] = useState(false);
 const [sidebar, setSidebar] = useState(false);
 const latestStreamValue = useRef(null);
 const latestStreamPromise = useRef(null);
 
-const onResult = (transcript) => {
+/*const onResult = (transcript) => {
     console.log("message: " + transcript)
     socket.current.emit('user_speech', { username: user.id, room: room.id, transcript: transcript });
 }
-useSpeechRecognition(localStreamState.mic, 'en-US', onResult);
+
+useSpeechRecognition(localStreamState.mic, 'en-US', onResult);*/
 
 useEffect(() => {
     /*socket.current.on("fact", (hint) => {
@@ -173,7 +170,7 @@ useEffect(() => {
     socket.current.on("news", (hints) => {
         addNotification(hints[0][0], 'info', hints[0][1]);
     });
-}, [socket, addNotification]);
+}, [socket, room, addNotification]);
 
 useEffect(() => {
     if(!deskState && localStreamState.desk){
@@ -266,9 +263,9 @@ return (
     <Chat 
         isOpen={chatOpen} 
         onClose={handleChatClose} 
-        socket={socket.current} 
+        socket={socket} 
         localUsername={user.id}
-        roomName={room.id}
+        roomName={room}
     />
     <ParticipantsList participants={getParticipants()} isOpen={sidebar} onClose={()=>setSidebar(false)}/>
     <ControlPanel cameraEnabled={localStreamState.cam} handleCamera={handleVideo} 
@@ -278,7 +275,7 @@ return (
         handleChat={handleChatOpen} handleParticipants={()=>setSidebar(!sidebar)} 
         notifications={notifications}
         handleNotifications={()=> setIsNotificationsOpen(!isNotificationsOpen)}
-        handleEndCall={handleEndCall} invite={`${window.location.origin}/rooms/invite/${room.id}/${room.isPrivate}`} />
+        handleEndCall={handleEndCall} invite={`${window.location.origin}/rooms/invite/${room}`} />
     </Box>
     <NotificationPanel 
         notifications={notifications} 

@@ -29,11 +29,9 @@ function Chat({isOpen, onClose, socket, localUsername, roomName}) {
             text: messageInput.trim(),
             time: `${now.getHours()}:${now.getMinutes()}`,
         };
-        setMessages([...messages, { username: localUsername, message: newMessage }]);
+        setMessages([...messages, { username: "you", message: newMessage }]);
         // Send the new message to the server
-        if(socket) {
-            socket.emit('message', { username: localUsername, room: roomName, message: newMessage });
-        }
+        socket.current.emit('message', { username: localUsername, room: roomName, message: newMessage });
         setMessageInput('');
         }
     };
@@ -47,17 +45,10 @@ function Chat({isOpen, onClose, socket, localUsername, roomName}) {
     }, [messages]);
 
     useEffect(() => {
-        if(socket) {
-            // Listen for incoming messages from the server
-            socket.on('message', (message, username) => {
-                setMessages((prevMessages) => [...prevMessages,  { username: username, message: message }]);
-            });
-
-            // Clean up the event listener when the component unmounts
-            return () => {
-                socket.off('message');
-            };
-        }
+        socket.current.off('message');
+        socket.current.on('message', (message, username) => {
+            setMessages((prevMessages) => [...prevMessages,  { username: username, message: message }]);
+        });
     }, [socket]);
 
     return (
@@ -71,7 +62,7 @@ function Chat({isOpen, onClose, socket, localUsername, roomName}) {
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: element.username === localUsername ? 'flex-end' : 'flex-start',
+                    alignItems: element.username === "you" ? 'flex-end' : 'flex-start',
                     marginBottom: '10px',
                 }}
                 >
@@ -79,7 +70,7 @@ function Chat({isOpen, onClose, socket, localUsername, roomName}) {
                     primary={element.message.text}
                     secondary={`From ${element.username} at ${element.message.time}`}
                     style={{
-                        background: element.username === localUsername ? '#eee' : theme.palette.primary.light,
+                        background: element.username === "you" ? '#eee' : theme.palette.primary.light,
                         borderRadius: '15px',
                         padding: '10px',
                         maxWidth: '70%',
