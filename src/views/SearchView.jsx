@@ -321,7 +321,7 @@ const ViewToggle = ({ onViewChange }) => {
         exclusive
         onChange={handleViewTypeChange}
         aria-label="View Type"
-        sx={{ mb: 2 }}
+        sx={{ mb: 2, height: '50px'  }}
         >
         <ToggleButton value="list" aria-label="List View">
             <ViewListIcon />
@@ -330,6 +330,28 @@ const ViewToggle = ({ onViewChange }) => {
             <ViewModuleIcon />
         </ToggleButton>
         </ToggleButtonGroup>
+    );
+};
+
+const PerPageSelect = ({ perPage, setPerPage }) => {
+
+    const handlePerPageChange = (event) => {
+        setPerPage(event.target.value);
+    };
+    
+    return (
+        <FormControl sx={{ height: '50px' }}>
+            <Select
+                variant="outlined"
+                value={perPage}
+                onChange={handlePerPageChange}
+                sx={{ height: '100%' }}
+            >
+                <MenuItem value={6}>6</MenuItem>
+                <MenuItem value={12}>12</MenuItem>
+                <MenuItem value={36}>36</MenuItem>
+            </Select>
+        </FormControl>
     );
 };
 
@@ -492,8 +514,9 @@ const SearchView = ({handleGetRooms, handleDelete, pollInterval=5000}) => {
                             <FilterChips filters={filters} setFilters={setFilters} clear/>
                         </Box>
                     }
-                    <Box sx={{ mt: 2 }}>
+                    <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between" }}>
                         <ViewToggle onViewChange={setViewType}/>
+                        <PerPageSelect perPage={perPage} setPerPage={setPerPage}/>
                     </Box>
                     {loading && (
                         <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>

@@ -21,8 +21,8 @@ import { useWebRTC } from "../hooks/useWebRTC";
 import Carousel from 'react-material-ui-carousel';
 import NotificationPanel from "../components/NotificationPanel";
 
-const userVideo = (user, userInfo) => {
-    return (<UserVideo stream={user.stream} user={userInfo}/>);
+const userVideo = (user, userInfo, peerConnection) => {
+    return (<UserVideo stream={user.stream} user={userInfo} peerConnection={peerConnection}/>);
 };
 
 const deskVideos = (deskArray, userInfo) => {
@@ -31,8 +31,11 @@ const deskVideos = (deskArray, userInfo) => {
     ))
 }
 
-function VideosLayout({userCamera, users, usersInfo}) {
+function VideosLayout({userCamera, users, usersInfo, peerConnections}) {
     const matchesSM = useMediaQuery(theme => theme.breakpoints.down('sm'));
+    const peerConnection = (i) => {
+        return peerConnections[users[i].id];
+    }
     const userInfo = (i) => {
         return usersInfo[users[i].id];
     }
@@ -44,7 +47,7 @@ function VideosLayout({userCamera, users, usersInfo}) {
         </Grid>
         {users[0] ? 
         (<Grid item xs={4} sm={6} md={4}>
-        {userVideo(users[0], userInfo(0))}
+        {userVideo(users[0], userInfo(0), peerConnection(0))}
         </Grid>) : null}
         {/* Side videos */}
         {users[1] ?
@@ -52,18 +55,18 @@ function VideosLayout({userCamera, users, usersInfo}) {
         <Grid container spacing={1}>
             {users[1] ?
             (<Grid item xs={6} sm={3} md={12}>
-            {userVideo(users[1], userInfo(1))}
+            {userVideo(users[1], userInfo(1), peerConnection(1))}
             </Grid>) : null}
             {users[2] ?
             (<Grid item xs={6} sm={3} md={12}>
-            {userVideo(users[2], userInfo(2))}
+            {userVideo(users[2], userInfo(2), peerConnection(2))}
             </Grid>) : null}
         </Grid>
         </Grid>): null}
     </Grid>);
 }
 
-function VideosLayoutWithDesk({userCamera, userDesk, users, desk, usersInfo}) {
+function VideosLayoutWithDesk({userCamera, userDesk, users, desk, usersInfo, peerConnections}) {
     const allDesk = (local, remoteArray) => {
         if (local && remoteArray[0]) {
         return [local, ...deskVideos(remoteArray, usersInfo)];
@@ -78,6 +81,10 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk, usersInfo}) {
 
     const userInfo = (id) => {
         return usersInfo[users[id].id];
+    }
+
+    const peerConnection = (i) => {
+        return peerConnections[users[i].id];
     }
 
     return(
@@ -104,7 +111,7 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk, usersInfo}) {
             </Grid>
             {users[0] ?
             (<Grid item xs={6} sm={6} md={12}>
-            {userVideo(users[0], userInfo(0))}
+            {userVideo(users[0], userInfo(0), peerConnection(0))}
             </Grid>) : null}
         </Grid>
         </Grid>
@@ -113,11 +120,11 @@ function VideosLayoutWithDesk({userCamera, userDesk, users, desk, usersInfo}) {
         <Grid container spacing={1}>
             {users[1] ?
             (<Grid item xs={6} sm={6} md={12}>
-            {userVideo(users[1], userInfo(1))}
+            {userVideo(users[1], userInfo(1), peerConnection(1))}
             </Grid>) : null}
             {users[2] ?
             (<Grid item xs={6} sm={6} md={12}>
-            {userVideo(users[2], userInfo(2))}
+            {userVideo(users[2], userInfo(2), peerConnection(2))}
             </Grid>) : null}
         </Grid>
         </Grid>): null}
@@ -140,6 +147,7 @@ const removeNotification = (id) => {
 };
 const [useBlur, setUseBlur] = useState(settings.blur);
 const { 
+    peerConnections,
     localStreamState, 
     remoteStreamsState, 
     usersInfo,
@@ -251,12 +259,14 @@ return (
             } 
             users={remoteStreamsState.users} 
             usersInfo={usersInfo.current}
+            peerConnections={peerConnections.current}
             desk={remoteStreamsState.desk[0] ? remoteStreamsState.desk : false}
         />) :
         (<VideosLayout 
-        userCamera={renderCamera()} 
-        users={remoteStreamsState.users}
-        usersInfo={usersInfo.current}
+            userCamera={renderCamera()} 
+            users={remoteStreamsState.users}
+            usersInfo={usersInfo.current}
+            peerConnections={peerConnections.current}
         />)
         }
     </Container>

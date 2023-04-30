@@ -371,6 +371,7 @@ export const useWebRTC = (socket, user, roomId, settings, addNotification) => {
     }, [socket, localStreamState.stream, user, roomId]);
 
     return {
+        peerConnections: pc,
         localStreamState, 
         remoteStreamsState, 
         usersInfo,

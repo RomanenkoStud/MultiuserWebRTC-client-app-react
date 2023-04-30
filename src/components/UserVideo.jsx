@@ -2,11 +2,11 @@ import VideoItem from "./VideoItem";
 import { 
     Paper, 
     Skeleton, 
-    Chip, 
     Box, 
     Avatar, 
 } from '@mui/material';
 import { Mic, MicOff as MicOffIcon} from '@mui/icons-material';
+import ConnectionIcon from "./ConnectionIcon";
 import { useSpeakingDetector } from "../hooks/useSpeakingDetector";
 
 function UserVideoPlaceholder({user, children}) {
@@ -40,7 +40,7 @@ function UserVideoPlaceholder({user, children}) {
     );
 }
 
-function UserVideo({stream, muted, user}) {
+function UserVideo({stream, muted, user, peerConnection}) {
     const audioState = stream ? stream.getAudioTracks()[0]?.enabled : false;
     const videoState = stream ? stream.getVideoTracks()[0]?.enabled : false;
     const isSpeaking = useSpeakingDetector(stream);
@@ -48,6 +48,7 @@ function UserVideo({stream, muted, user}) {
     const shadowColor = 'rgba(33, 78, 40, 0.5)';
     const shadowThickness = isSpeaking ? 20 : 3;
 
+    const color="primary";
     return (
         <Paper elevation={3} 
             sx={{overflow: 'hidden', aspectRatio : '1 / 1', position: 'relative',
@@ -69,13 +70,15 @@ function UserVideo({stream, muted, user}) {
                             }} 
                     />
             }
-            <Chip color="default"  
+            <Box 
             sx={{
                 position: 'absolute',
                 bottom: 0,
-                right: 0,
-            }}
-            icon={audioState ? <Mic /> : <MicOffIcon />}/>
+                right: 5,
+            }}>
+                {audioState ? <Mic color={color}/> : <MicOffIcon color={color}/>}
+                {peerConnection && <ConnectionIcon peerConnection={peerConnection} color={color}/>}
+            </Box>
         </Paper>
     );
 }
