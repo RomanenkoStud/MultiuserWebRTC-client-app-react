@@ -51,15 +51,15 @@ const CreateRoomView = ({handleCreate}) => {
 
     return (
         <Container maxWidth="sm">
-            <CssBaseline />
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
-                <Typography component="h1" variant="h5">
-                Create a Room
-                </Typography>
-                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+        <CssBaseline />
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
+            <Typography component="h1" variant="h5">
+            Create a Room
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
                 <TextField
-                    error ={error}
-                    helperText={error ? "Error. Too short room name" : ""}
+                    error={error}
+                    helperText={error ? 'Error. Too short room name' : ''}
                     margin="normal"
                     required
                     fullWidth
@@ -69,10 +69,18 @@ const CreateRoomView = ({handleCreate}) => {
                     autoComplete="off"
                     value={roomName}
                     onChange={handleRoomNameChange}
+                    data-testid="room-name-input"
                 />
                 <FormControl component="fieldset" sx={{ mt: 2 }}>
                     <FormLabel component="legend">Room Type</FormLabel>
-                    <RadioGroup row aria-label="room type" name="room-type" value={roomType} onChange={handleRoomTypeChange}>
+                    <RadioGroup
+                    row
+                    aria-label="room type"
+                    name="room-type"
+                    value={roomType}
+                    onChange={handleRoomTypeChange}
+                    data-testid="room-type-input"
+                    >
                     <FormControlLabel value="public" control={<Radio />} label="Public" />
                     <FormControlLabel value="private" control={<Radio />} label="Private" />
                     </RadioGroup>
@@ -88,6 +96,7 @@ const CreateRoomView = ({handleCreate}) => {
                     autoComplete="off"
                     value={roomPassword}
                     onChange={handleRoomPasswordChange}
+                    data-testid="room-password-input"
                     />
                 )}
                 <TextField
@@ -101,13 +110,14 @@ const CreateRoomView = ({handleCreate}) => {
                     inputProps={{ min: 2, max: 4 }}
                     value={maxUsers}
                     onChange={handleMaxUsersChange}
+                    data-testid="max-users-input"
                 />
-                <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+                <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }} data-testid="create-room-button">
                     Create Room
                 </Button>
                 <RequestStatus message={message}/>
-                </Box>
             </Box>
+        </Box>
         </Container>
     );
 };

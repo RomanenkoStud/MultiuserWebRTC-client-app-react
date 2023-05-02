@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import AfterCallView from '../views/AfterCallView';
+import userEvent from '@testing-library/user-event';
 
 describe('AfterCallView', () => {
     it('renders the "How was the call?" text', () => {
@@ -26,7 +27,7 @@ describe('AfterCallView', () => {
         const onRatingMock = jest.fn();
         render(<AfterCallView onRating={onRatingMock} />);
         const buttonElement = screen.getByRole('button', { name: /submit rating/i });
-        fireEvent.click(buttonElement);
+        userEvent.click(buttonElement);
         expect(onRatingMock).toHaveBeenCalled();
     });
 
@@ -40,7 +41,7 @@ describe('AfterCallView', () => {
         const handleReturnMock = jest.fn();
         render(<AfterCallView handleReturn={handleReturnMock} />);
         const buttonElement = screen.getByRole('button', { name: /return to call/i });
-        fireEvent.click(buttonElement);
+        userEvent.click(buttonElement);
         expect(handleReturnMock).toHaveBeenCalled();
     });
 });
