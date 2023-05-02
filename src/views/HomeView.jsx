@@ -1,3 +1,4 @@
+import React from "react";
 import LinkWithLogoAnimation from "../components/NavBar/LinkWithLogoAnimation";
 import { 
     CssBaseline, 
@@ -253,10 +254,10 @@ const Pricing = () => {
                     </Typography>
                     <Typography variant="body1" gutterBottom>
                         {plan.features.map((feature, index) => (
-                        <>
-                            {feature}
-                            <br />
-                        </>
+                        <React.Fragment key={index}>
+                        {feature}
+                        <br />
+                        </React.Fragment>
                         ))}
                     </Typography>
                     <Typography variant="h6" component="div" sx={{ marginTop: 2 }}>
@@ -367,7 +368,7 @@ const HomeView = () => {
                 </Typography>
                 </Description>
             </Fade>
-            <Box  sx={matchesMd && {display: 'flex', justifyContent: 'center'}}>
+            <Box sx={matchesMd ? {display: 'flex', justifyContent: 'center'} : null}>
                 <LinkWithLogoAnimation to={'/rooms/create'} style={{ textDecoration: 'none' }}>
                 <ActionButton variant="contained" color="primary">
                     Create Room
