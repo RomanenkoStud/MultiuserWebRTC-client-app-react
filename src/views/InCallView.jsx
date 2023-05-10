@@ -17,7 +17,7 @@ import {
     ScreenSharing
 }  from "../components/UserMediaInputs/UserMediaInputs";
 import { useWebRTC } from "../hooks/useWebRTC";
-//import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import Carousel from 'react-material-ui-carousel';
 import NotificationPanel from "../components/NotificationPanel";
 
@@ -163,20 +163,22 @@ const [sidebar, setSidebar] = useState(false);
 const latestStreamValue = useRef(null);
 const latestStreamPromise = useRef(null);
 
-/*const onResult = (transcript) => {
+const onResult = (transcript) => {
     console.log("message: " + transcript)
-    socket.current.emit('user_speech', { username: user.id, room: room.id, transcript: transcript });
+    socket.current.emit('user_speech', { username: user.id, room: room, transcript: transcript });
 }
 
-useSpeechRecognition(localStreamState.mic, 'en-US', onResult);*/
+useSpeechRecognition(localStreamState.mic, 'uk-UA', onResult); //'uk-UA' 'en-US'
 
 useEffect(() => {
     /*socket.current.on("fact", (hint) => {
         console.log("fact!", hint);
         addNotification(hint, 'info');
     });*/
+    socket.current.off("news");
     socket.current.on("news", (hints) => {
         addNotification(hints[0][0], 'info', hints[0][1]);
+        console.log(hints)
     });
 }, [socket, room, addNotification]);
 

@@ -13,8 +13,8 @@ const connectionOptions = {
     autoConnect: false,
 };
 
-//const host = "http://localhost:8000/";
-const host = "https://azure-flask-socketio.azurewebsites.net/";
+const host = "http://localhost:8000/";
+//const host = "https://azure-flask-socketio.azurewebsites.net/";
 
 export default function CallsController() {
   const params = useParams();
