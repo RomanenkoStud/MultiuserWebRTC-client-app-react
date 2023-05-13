@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import "@testing-library/jest-dom/extend-expect";
 import userEvent from '@testing-library/user-event';
-import HomeView from '../views/HomeView';
+import HomeView from '../../views/HomeView';
 import { BrowserRouter as Router } from "react-router-dom";
-import { LogoAnimationProvider } from "../components/NavBar/LogoAnimationContext";
+import { LogoAnimationProvider } from "../../components/NavBar/LogoAnimationContext";
 
 describe('HomeView', () => {
 

@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import userEvent from "@testing-library/user-event";
-import RegisterView from "../views/RegisterView";
+import RegisterView from "../../views/RegisterView";
 import { BrowserRouter as Router } from 'react-router-dom';
-import { LogoAnimationProvider } from '../components/NavBar/LogoAnimationContext';
+import { LogoAnimationProvider } from '../../components/NavBar/LogoAnimationContext';
 
 describe("RegisterView component", () => {
     it("submitting the form with valid data calls the handleRegister function", async () => {

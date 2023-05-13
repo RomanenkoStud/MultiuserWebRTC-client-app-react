@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { LogoAnimationProvider } from '../components/NavBar/LogoAnimationContext';
-import NotFoundView from '../views/NotFoundView';
+import { LogoAnimationProvider } from '../../components/NavBar/LogoAnimationContext';
+import NotFoundView from '../../views/NotFoundView';
 
 describe('NotFoundView', () => {
     it('should display 404 heading', () => {

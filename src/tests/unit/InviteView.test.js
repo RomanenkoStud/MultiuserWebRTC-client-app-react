@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import InviteView from "../views/InviteView";
+import InviteView from "../../views/InviteView";
 import userEvent from "@testing-library/user-event";
 
 describe("InviteView", () => {

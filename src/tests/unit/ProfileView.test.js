@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import userEvent from "@testing-library/user-event";
-import ProfileView from '../views/ProfileView';
+import ProfileView from '../../views/ProfileView';
 
 describe('ProfileView', () => {
     const user = {

@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import "@testing-library/jest-dom/extend-expect";
 import userEvent from '@testing-library/user-event';
-import Rooms from '../components/Rooms';
+import Rooms from '../../components/Rooms';
 import { BrowserRouter as Router } from "react-router-dom";
-import { LogoAnimationProvider } from "../components/NavBar/LogoAnimationContext";
+import { LogoAnimationProvider } from "../../components/NavBar/LogoAnimationContext";
 
 describe('Rooms component', () => {
     const rooms = [

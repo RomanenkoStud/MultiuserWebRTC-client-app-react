@@ -9,12 +9,11 @@ export const useSpeechRecognition = (isListening, lang, onResult) => {
         recognition.current = new window.webkitSpeechRecognition();
         recognition.current.continuous = true;
         recognition.current.interimResults = true;
-        recognition.current.lang = lang;//'uk-UA' 'en-US'
+        recognition.current.lang = lang;
         recognition.current.onresult = (event) => {
             const interimTranscript = Array.from(event.results)
                 .map((result) => result[0].transcript)
                 .join('');
-                console.log(interimTranscript);
             transcript.current = interimTranscript;
         };
         recognition.current.onerror = (event) => {

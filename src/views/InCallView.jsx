@@ -164,17 +164,18 @@ const latestStreamValue = useRef(null);
 const latestStreamPromise = useRef(null);
 
 const onResult = (transcript) => {
-    console.log("message: " + transcript)
+    console.log("recognized text: " + transcript)
     socket.current.emit('user_speech', { username: user.id, room: room, transcript: transcript });
 }
 
 useSpeechRecognition(localStreamState.mic, 'uk-UA', onResult); //'uk-UA' 'en-US'
 
 useEffect(() => {
-    /*socket.current.on("fact", (hint) => {
+    socket.current.off("fact");
+    socket.current.on("fact", (hint) => {
         console.log("fact!", hint);
         addNotification(hint, 'info');
-    });*/
+    });
     socket.current.off("news");
     socket.current.on("news", (hints) => {
         addNotification(hints[0][0], 'info', hints[0][1]);

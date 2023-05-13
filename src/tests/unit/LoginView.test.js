@@ -1,12 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import userEvent from "@testing-library/user-event";
-import LoginView from "../views/LoginView";
+import LoginView from "../../views/LoginView";
 import { BrowserRouter as Router } from "react-router-dom";
-import { LogoAnimationProvider } from "../components/NavBar/LogoAnimationContext";
-import { useAuth } from "../hooks/useAuth";
+import { LogoAnimationProvider } from "../../components/NavBar/LogoAnimationContext";
+import { useAuth } from "../../hooks/useAuth";
 
-jest.mock("../hooks/useAuth", () => ({
+jest.mock("../../hooks/useAuth", () => ({
     useAuth: jest.fn(),
 }));
 
