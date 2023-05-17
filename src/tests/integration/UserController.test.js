@@ -10,8 +10,8 @@ jest.mock('../../services/user.service', () => ({
     __esModule: true,
     default: {
         register: jest.fn(),
-        login: jest.fn(),
         update: jest.fn(),
+        delete: jest.fn(),
     }
 }));
 
@@ -108,5 +108,36 @@ describe('UserController', () => {
             email: userUpdated.email,
             token: user.token,
         });
+    });
+
+    test('deletes user', async () => {
+        const user = { id: 1, username: 'testuser', email: 'testuser@example.com' };
+        const userServiceMock = require('../../services/user.service').default;
+        userServiceMock.delete.mockResolvedValueOnce({ data: 'success' });
+    
+        // create a mock Redux store with the required state
+        const store = {
+            getState: () => ({ auth: {
+                isLoggedIn: true,
+                user,
+            } }),
+            dispatch: jest.fn(),
+            subscribe: jest.fn()
+        };
+    
+        render(
+            <Provider store={store}>
+                <LogoAnimationProvider>
+                    <Router>
+                        <UserController />
+                    </Router>
+                </LogoAnimationProvider>
+            </Provider>
+        );
+        
+        // click the delete button
+        userEvent.click(screen.getByRole('button', { name: /Delete profile/ }));
+        // click the submit button
+        userEvent.click(screen.getByRole('button', { name: /Delete/ }));
     });
 });

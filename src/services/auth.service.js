@@ -14,10 +14,10 @@ class AuthService {
             });
         }
     
-        logout() {
-            axios
+    logout() {
+        return axios
             .post(this.apiUrl + "logout");
-        }
+    }
 }
 
 const authService = new AuthService();
